@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冀事通数字人助手</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 160px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-container.active {
+            width: 300px;
+            height: 400px;
+        }
+
+        .avatar-container.small {
+            width: 80px;
+            height: 120px;
+            bottom: 10px;
+            left: 10px;
+        }
+
+        .avatar-view {
+            width: 100%;
+            height: 100%;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s;
+        }
+
+        .avatar-img.speaking {
+            animation: speak 0.5s infinite alternate;
+        }
+
+        @keyframes speak {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+
+        .interaction-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 350px;
+            width: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(120%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .interaction-panel.active {
+            transform: translateY(0);
+        }
+
+        .chat-container {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+        }
+
+        .user-message {
+            background-color: #3498db;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message {
+            background-color: #ecf0f1;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .option-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .status-indicator {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .voice-control {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1002;
+        }
+
+        .voice-btn {
+            padding: 12px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .voice-btn.listening {
+            animation: pulse 1.5s infinite;
+            background-color: #2ecc71;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video id="intro-video" loop muted paused>
+            <source src="冀事通.mp4" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <div class="avatar-container" id="avatar-container">
+        <div class="avatar-view">
+          
+            <img src="placeholder.jpg"
+                 alt="数字人"
+                 class="avatar-img"
+                 id="avatar-image">
+        </div>
+    </div>
+
+    <div class="interaction-panel" id="interaction-panel">
+        <div class="chat-container" id="chat-box">
+            <div class="message bot-message" id="welcome-message">
+                欢迎来到冀事通！请问您现在是想简单了解一下冀事通还是立马进入冀事通？
+            </div>
+        </div>
+
+        <div class="option-buttons">
+            <button class="option-btn" id="learn-more-btn">简单了解</button>
+            <button class="option-btn" id="enter-btn">进入冀事通</button>
+        </div>
+
+        <div class="status-indicator" id="status-indicator">系统准备就绪</div>
+    </div>
+
+    <div class="voice-control">
+        <button class="voice-btn" id="voice-control-btn" title="语音控制">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        // DOM元素
+        const avatarContainer = document.getElementById('avatar-container');
+        const avatarImage = document.getElementById('avatar-image');
+        const interactionPanel = document.getElementById('interaction-panel');
+        const chatBox = document.getElementById('chat-box');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const learnMoreBtn = document.getElementById('learn-more-btn');
+        const enterBtn = document.getElementById('enter-btn');
+        const statusIndicator = document.getElementById('status-indicator');
+        const introVideo = document.getElementById('intro-video');
+        const voiceControlBtn = document.getElementById('voice-control-btn');
+    
+        // 语音识别和合成相关变量
+        let recognition;
+        let isRecognizing = false;
+        let isSpeaking = false;
+        const synth = window.speechSynthesis;
+        let voices = [];
+        let hasWelcomed = false;
+        let isVideoPaused = false;
+        let defaultVoice = null;
+        
+        // 从本地存储获取选择的数字人
+        const selectedAvatar = JSON.parse(localStorage.getItem('selectedAvatar'));
+        const AVATARS = [
+            {"id": 1, "name": "竹芯", "image": "avatar1.jpg", "voicePitch": 1.0},
+            {"id": 2, "name": "小满", "image": "avatar2.jpg", "voicePitch": 1.1},
+            {"id": 3, "name": "婉仪", "image": "avatar3.jpg", "voicePitch": 0.9},
+            {"id": 4, "name": "浩然", "image": "avatar4.jpg", "voicePitch": 0.95},
+            {"id": 5, "name": "诗雅", "image": "avatar5.jpg", "voicePitch": 1.05},
+            {"id": 6, "name": "梦萱", "image": "avatar6.jpg", "voicePitch": 0.85}
+        ];
+        
+        // 初始化语音识别
+        function initSpeechRecognition() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+            if (!window.SpeechRecognition) {
+                statusIndicator.textContent = "您的浏览器不支持语音识别，请使用最新版Chrome或Edge";
+                voiceControlBtn.disabled = true;
+                return;
+            }
+    
+            recognition = new window.SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+    
+            recognition.onstart = function() {
+                isRecognizing = true;
+                voiceControlBtn.classList.add('listening');
+                statusIndicator.textContent = "正在聆听...请说话";
+                triggerAvatarReaction();
+            };
+    
+            recognition.onerror = function(event) {
+                console.error('识别错误:', event.error);
+                statusIndicator.textContent = "识别错误: " + event.error;
+                resetRecognition();
+    
+                if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                    speak('对不起，暂时无法识别，您可以通过按钮与我沟通');
+                }
+            };
+    
+            recognition.onend = function() {
+                if (isRecognizing && !isSpeaking) {
+                    recognition.start();
+                }
+            };
+    
+            recognition.onresult = function(event) {
+                if (isSpeaking) return;
+    
+                let interimTranscript = '';
+                let finalTranscript = '';
+    
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                        processVoiceCommand(finalTranscript);
+                        finalTranscript = '';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+            };
+        }
+    
+        // 处理语音指令
+        function processVoiceCommand(command) {
+            command = command.toLowerCase().trim();
+            displayMessage(command, 'user');
+    
+            if (command.includes('了解') || command.includes('介绍')) {
+                chooseLearnMore();
+            } else if (command.includes('进入') || command.includes('首页')) {
+                chooseEnter();
+            } else {
+                speak('我没有听懂您的指令，请说"简单了解"或"进入冀事通"');
+            }
+        }
+    
+        // 重置语音识别
+        function resetRecognition() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isRecognizing = false;
+            voiceControlBtn.classList.remove('listening');
+            statusIndicator.textContent = "系统准备就绪";
+        }
+    
+        // 激活交互
+        function activateInteraction() {
+            avatarContainer.classList.add('active');
+            interactionPanel.classList.add('active');
+    
+            if (!hasWelcomed) {
+                speak('欢迎来到冀事通！请问您现在是想简单了解一下冀事通还是立马进入冀事通？');
+                hasWelcomed = true;
+            } else {
+                speak('好的，请问有什么可以帮您的？');
+            }
+        }
+    
+        // 关闭交互
+        function deactivateInteraction() {
+            avatarContainer.classList.remove('active');
+            interactionPanel.classList.remove('active');
+            resetRecognition();
+        }
+    
+        // 播放介绍视频
+        function playIntroVideo() {
+            speak('正在为您播放冀事通介绍视频', function() {
+                deactivateInteraction();
+                introVideo.currentTime = 0;
+                introVideo.loop = false;
+                introVideo.muted = false;
+                introVideo.play().catch(e => {
+                    console.error('视频播放失败:', e);
+                    statusIndicator.textContent = "视频播放失败";
+                    avatarContainer.classList.remove('small');
+                    speak('视频播放失败，请检查网络连接');
+                });
+            });
+        }
+    
+        // 停止视频播放
+        function stopIntroVideo() {
+            introVideo.pause();
+            introVideo.currentTime = 0;
+            avatarContainer.classList.remove('small');
+            isVideoPaused = true;
+        }
+    
+        // 继续播放视频
+        function resumeIntroVideo() {
+            if (isVideoPaused && introVideo.paused) {
+                introVideo.play().catch(e => {
+                    console.error('视频播放失败:', e);
+                    statusIndicator.textContent = "视频播放失败";
+                    speak('视频播放失败，请检查网络连接');
+                });
+                isVideoPaused = false;
+            }
+        }
+    
+        function enterJishiTong() {
+            speak('正在为您跳转到冀事通首页', function() {
+                setTimeout(() => {
+                    stopIntroVideo();
+                    window.location.href = "shuju.html";
+                }, 1);
+            });
+        }
+    
+        // 选择"简单了解"
+        function chooseLearnMore() {
+            displayMessage("我想简单了解一下冀事通", 'user');
+            playIntroVideo();
+        }
+    
+        // 选择"进入冀事通"
+        function chooseEnter() {
+            displayMessage("我想直接进入冀事通", 'user');
+            enterJishiTong();
+        }
+    
+        // 触发数字人反应
+        function triggerAvatarReaction(speaking = true) {
+            if (speaking) {
+                avatarImage.classList.add('speaking');
+            } else {
+                avatarImage.classList.remove('speaking');
+            }
+        }
+    
+        // 显示消息
+        function displayMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+    
+            if (type === 'user') {
+                messageDiv.classList.add('user-message');
+            } else if (type === 'bot') {
+                messageDiv.classList.add('bot-message');
+            }
+    
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    
+        // 初始化语音合成
+        function initSpeechSynthesis() {
+            function loadVoices() {
+                voices = synth.getVoices();
+                // 设置默认语音
+                if (voices.length > 0) {
+                    // 尝试找到中文语音
+                    const chineseVoices = voices.filter(voice => voice.lang.includes('zh'));
+                    if (chineseVoices.length > 0) {
+                        defaultVoice = chineseVoices[0];
+                    } else {
+                        defaultVoice = voices[0];
+                    }
+                }
+            }
+    
+            loadVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        }
+    
+        // 语音朗读（根据选择的数字人调整语音特性）
+        function speak(text, callback) {
+            if (!synth || !text) return;
+    
+            if (recognition && isRecognizing) {
+                recognition.stop();
+            }
+    
+            isSpeaking = true;
+            statusIndicator.textContent = "系统正在回应...";
+            triggerAvatarReaction(true);
+    
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+    
+            if (defaultVoice) {
+                utterance.voice = defaultVoice;
+            }
+    
+            // 根据选择的数字人调整语音特性
+            if (selectedAvatar) {
+                const avatar = AVATARS.find(a => a.id === selectedAvatar);
+                if (avatar) {
+                    utterance.rate = 0.9;
+                    utterance.pitch = avatar.voicePitch;
+                }
+            } else {
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+            }
+    
+            utterance.onend = function() {
+                isSpeaking = false;
+                triggerAvatarReaction(false);
+                statusIndicator.textContent = "系统准备就绪";
+    
+                if (callback) callback();
+    
+                if (isRecognizing) {
+                    recognition.start();
+                }
+            };
+    
+            utterance.onerror = function(event) {
+                console.error('语音合成错误:', event.error);
+                isSpeaking = false;
+                triggerAvatarReaction(false);
+                statusIndicator.textContent = "语音输出出错";
+                if (callback) callback();
+            };
+    
+            synth.speak(utterance);
+        }
+    
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 设置数字人图像
+            if (selectedAvatar) {
+                const avatar = AVATARS.find(a => a.id === selectedAvatar);
+                if (avatar) {
+                    avatarImage.src = avatar.image;
+                    avatarImage.alt = avatar.name;
+                    // 更新欢迎消息
+                    welcomeMessage.textContent = `欢迎来到冀事通！请问您现在是想简单了解一下冀事通还是立马进入冀事通？`;
+                }
+            }
+    
+            initSpeechRecognition();
+            initSpeechSynthesis();
+            introVideo.pause();
+    
+            // 视频事件监听
+            introVideo.addEventListener('play', function() {
+                avatarContainer.classList.remove('active');
+                avatarContainer.classList.add('small');
+                deactivateInteraction();
+                isVideoPaused = false;
+            });
+    
+            introVideo.addEventListener('ended', function() {
+                avatarContainer.classList.remove('small');
+                speak('视频播放结束，需要我继续介绍吗？');
+            });
+    
+            introVideo.addEventListener('pause', function() {
+                if (!introVideo.ended) {
+                    avatarContainer.classList.remove('small');
+                    isVideoPaused = true;
+                }
+            });
+    
+            introVideo.addEventListener('error', function() {
+                avatarContainer.classList.remove('small');
+                speak('视频加载出错');
+            });
+    
+            // 点击屏幕处理
+            document.addEventListener('click', function(e) {
+                if (e.target === avatarContainer ||
+                    avatarContainer.contains(e.target) ||
+                    e.target === interactionPanel ||
+                    interactionPanel.contains(e.target)) {
+                    return;
+                }
+    
+                if (!introVideo.paused) {
+                    stopIntroVideo();
+                    speak('已暂停播放视频');
+                }
+                else if (isVideoPaused) {
+                    resumeIntroVideo();
+                    speak('继续播放视频');
+                }
+            });
+    
+            // 点击数字人
+            avatarContainer.addEventListener('click', function() {
+                if (!interactionPanel.classList.contains('active')) {
+                    activateInteraction();
+                }
+            });
+    
+            // 按钮事件
+            learnMoreBtn.addEventListener('click', chooseLearnMore);
+            enterBtn.addEventListener('click', chooseEnter);
+    
+            voiceControlBtn.addEventListener('click', function() {
+                if (isRecognizing) {
+                    resetRecognition();
+                } else {
+                    if (recognition) {
+                        recognition.start();
+                    } else {
+                        statusIndicator.textContent = "语音识别未初始化";
+                    }
+                }
+            });
+    
+            // 初始提示
+            setTimeout(() => {
+                if (!interactionPanel.classList.contains('active')) {
+                    speak('点击我可以开始对话');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

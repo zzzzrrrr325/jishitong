@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>河北省车辆监控系统</title>
+    <link rel="stylesheet" href="base.css">
+    <link href="zTreeStyle.css" rel="stylesheet" type="text/css" />
+    <style>
+        .car-info-label {
+            display: inline-block;
+            width: 100px;
+            color: #666;
+        }
+        .car-info-value {
+            color: #333;
+            font-weight: bold;
+        }
+        .status-running {
+            color: #4CAF50;
+        }
+        .status-stopped {
+            color: #F44336;
+        }
+        .status-warning {
+            color: #FFC107;
+        }
+        .video-container {
+            background: #000;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .video-container video {
+            width: 100%;
+            height: 180px;
+        }
+        .video-label {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            color: #FFF;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 5px;
+            font-size: 12px;
+        }
+        .map-container {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .search-box {
+            margin-bottom: 15px;
+        }
+        .search-box input[type="text"] {
+            width: 70%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-box input[type="button"] {
+            width: 25%;
+            padding: 8px;
+            background: #1E88E5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .vehicle-count {
+            background: #1E88E5;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .highlight-marker {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<header class="header left">
+    <div class="left nav">
+        <ul>
+            <li class="nav_active"><i class="nav_1"></i><a href="#" data-page="shuju.html">数据概览</a></li>
+            <li><i class="nav_2"></i><a href="#" data-page="carContrl.html">车辆监控</a></li>
+            <li><i class="nav_3"></i><a href="#" data-page="map.html">地图界面</a></li>
+        </ul>
+    </div>
+
+    <div class="header_center left">
+        <h2><strong>河北省交通综合服务平台</strong></h2>
+        <p class="color_font"><small>Hebei Comprehensive Transportation Service Platform</small></p>
+    </div>
+
+    <div class="right nav text_right">
+        <ul>
+            <li><i class="nav_7"></i><a href="#" data-page="static.html">查询统计</a></li>
+            <li><i class="nav_8"></i><a href="#" data-page="message.html">政策信息</a></li>
+            <li><i class="nav_4"></i><a href="#" data-page="table1.html">业务办理</a></li>
+            <li id="user-info">
+                <i class="nav-user"></i>
+                <span id="username-display">用户</span>
+                <ul class="li_ul">
+                    <li><a href="#" id="logout-btn">退出登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</header>
+<!--内容部分-->
+<div class="con1 left" id="car_control">
+    <div class="left car_left">
+        <div class="left_up bow_shadow">
+            <div class="search-box">
+                <input type="text" id="plateSearch" placeholder="输入车牌号(冀A12345)" class="carNo_input">
+                <input type="button" id="searchBtn" value="搜索" class="find_but">
+            </div>
+            
+            <div class="vehicle-count">
+            当前在线车辆: <strong>1,248</strong>|总车辆数: <strong>5,672</strong>
+            </div>
+
+            <p class="set_list"><i class="list_i"></i> 河北省车辆列表：</p>
+            <ul id="treeDemo" class="ztree"></ul>
+        </div>
+       <div class="left_down bow_shadow">
+           <div class="text_center">
+               <a href="javascript:void(0)" class="tab_a tab_aActive">基本信息</a>
+               <a href="javascript:void(0)" class="tab_a">智能分析</a>
+           </div>
+           <div class="car_content" id="vehicleInfo">
+               <p><span class="car-info-label">车牌号：</span><span class="car-info-value" id="plateNo">-</span></p>
+               <p><span class="car-info-label">车辆类型：</span><span class="car-info-value" id="vehicleType">-</span></p>
+               <p><span class="car-info-label">驾驶人：</span><span class="car-info-value" id="driverName">-</span></p>
+               <p><span class="car-info-label">联系电话：</span><span class="car-info-value" id="driverPhone">-</span></p>
+               <p><span class="car-info-label">车辆品牌：</span><span class="car-info-value" id="vehicleBrand">-</span></p>
+               <p><span class="car-info-label">状态：</span><span class="car-info-value" id="vehicleStatus">-</span></p>
+               <p><span class="car-info-label">当前位置：</span><span class="car-info-value" id="currentLocation">-</span></p>
+               <p><span class="car-info-label">最后上报：</span><span class="car-info-value" id="lastReportTime">-</span></p>
+               <p><span class="car-info-label">核载人数：</span><span class="car-info-value" id="capacity">-</span></p>
+               <p><span class="car-info-label">当前速度：</span><span class="car-info-value" id="currentSpeed">-</span></p>
+           </div>
+           <div class="car_content" id="smartAnalysis" style="display:none;">
+               <p><span class="car-info-label">驾驶行为分析：</span><span class="car-info-value" id="drivingBehavior">-</span></p>
+               <p><span class="car-info-label">路线优化建议：</span><span class="car-info-value" id="routeSuggestion">-</span></p>
+               <p><span class="car-info-label">油耗分析：</span><span class="car-info-value" id="fuelConsumption">-</span></p>
+               <p><span class="car-info-label">维护建议：</span><span class="car-info-value" id="maintenanceTip">-</span></p>
+           </div>
+       </div>
+    </div>
+   <div class="left car_center">
+    <div class="video-container">
+        <video controls="controls" src="front_view.mp4"></video>
+        <span class="video-label">摄像头</span>
+    </div>
+    <div class="video-container">
+        <video controls="controls" class="magin_left" src="inside_car.mp4"></video>
+        <span class="video-label">摄像头</span>
+    </div>
+    <div class="video-container">
+        <video controls="controls" class="magin_top" src="rear_view.mp4"></video>
+        <span class="video-label">摄像头</span>
+    </div>
+    <div class="video-container">
+        <video controls="controls" class="magin_top magin_left" src="right_side.mp4"></video>
+        <span class="video-label">摄像头</span>
+    </div>
+</div>
+    
+    <div class="right car_right">
+        <div id="map" class="map-container"></div>
+        <div class="map-overlay">
+            <div class="map-controls">
+                <button class="map-btn">实时监控</button>
+                <button class="map-btn">轨迹回放</button>
+                <button class="map-btn">区域统计</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="jQuery-2.2.0.min.js"></script>
+<script src="echarts-all.js"></script>
+<script src="base.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=5ieMMexWmzB9jivTq6oCRX9j&callback"></script>
+<script src="car_control.js"></script>
+<script src="jquery.ztree.all-3.5.js"></script>
+<script src="js/listTree.js"></script>
+
+<script>
+	
+// 导航功能实现
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('a[data-page]');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault(); // 阻止默认跳转行为
+            const page = this.getAttribute('data-page');
+            
+            if (page) {
+                // 这里使用alert模拟，实际应该跳转到对应页面
+                alert(`即将跳转到: ${page}`);
+                window.location.href = page;
+                
+               
+            }
+        });
+    });
+    
+    // 退出登录功能
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // 确认退出
+        if (confirm('确定要退出登录吗？')) {
+            alert('您已成功退出登录');
+             window.location.href = 'index.html';
+        }
+    });
+    
+});
+    // 全局变量存储地图和标记
+    var map;
+    var markers = {};
+    var currentHighlightMarker = null;
+    
+    // 初始化地图
+    function initMap() {
+        map = new BMap.Map("map");
+        // 设置中心点为河北省会石家庄
+        var point = new BMap.Point(114.514859, 38.042306);
+        map.centerAndZoom(point, 8);
+        
+        // 添加控件
+        map.addControl(new BMap.NavigationControl());
+        map.addControl(new BMap.ScaleControl());
+        map.addControl(new BMap.OverviewMapControl());
+        
+        // 添加河北省主要城市标记
+        var cities = [
+            {name: "石家庄", lng: 114.514859, lat: 38.042306},
+            {name: "唐山", lng: 118.180193, lat: 39.630867},
+            {name: "秦皇岛", lng: 119.600492, lat: 39.935385},
+            {name: "邯郸", lng: 114.538961, lat: 36.625657},
+            {name: "邢台", lng: 114.504844, lat: 37.070589},
+            {name: "保定", lng: 115.464806, lat: 38.873891},
+            {name: "张家口", lng: 114.887543, lat: 40.824418},
+            {name: "承德", lng: 117.96241, lat: 40.954071},
+            {name: "沧州", lng: 116.838834, lat: 38.304477},
+            {name: "廊坊", lng: 116.683752, lat: 39.538047},
+            {name: "衡水", lng: 115.668815, lat: 37.735298}
+        ];
+        
+        // 模拟车辆数据
+        var vehicles = generateMockVehicles(50, cities);
+        
+        // 添加车辆标记
+        vehicles.forEach(function(vehicle) {
+            addVehicleMarker(vehicle);
+        });
+    }
+    
+    // 生成模拟车辆数据
+    function generateMockVehicles(count, cities) {
+        var vehicles = [];
+        var types = ["客运大巴", "货运卡车", "出租车", "私家车", "特种车辆"];
+        var brands = ["宇通", "金龙", "福田", "解放", "东风"];
+        var statuses = ["运行中", "已停运", "维修中"];
+        
+        for (var i = 0; i < count; i++) {
+            var city = cities[Math.floor(Math.random() * cities.length)];
+            var lng = city.lng + (Math.random() - 0.5) * 0.5;
+            var lat = city.lat + (Math.random() - 0.5) * 0.5;
+            
+            // 随机车牌号（冀A到冀T）
+            var prefix = "冀" + String.fromCharCode(65 + Math.floor(Math.random() * 20));
+            var number = Math.floor(10000 + Math.random() * 90000);
+            var plate = prefix + number;
+            
+            var now = new Date();
+            var reportTime = new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000);
+            
+            vehicles.push({
+                plateNo: plate,
+                type: types[Math.floor(Math.random() * types.length)],
+                driver: "张" + ["伟","强","勇","军","明"][Math.floor(Math.random() * 5)],
+                phone: "138" + Math.floor(10000000 + Math.random() * 90000000),
+                brand: brands[Math.floor(Math.random() * brands.length)],
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                location: city.name + "市" + ["中山路","建设大街","和平路","裕华路"][Math.floor(Math.random() * 4)],
+                reportTime: reportTime,
+                capacity: Math.floor(10 + Math.random() * 40),
+                speed: Math.floor(30 + Math.random() * 90),
+                position: new BMap.Point(lng, lat)
+            });
+        }
+        
+        return vehicles;
+    }
+    
+    // 添加车辆标记到地图
+    function addVehicleMarker(vehicle) {
+        var marker = new BMap.Marker(vehicle.position);
+        map.addOverlay(marker);
+        
+        // 存储车辆信息到标记
+        marker.vehicleInfo = vehicle;
+        
+        // 添加车牌标签
+        var label = new BMap.Label(vehicle.plateNo, {offset: new BMap.Size(20, -10)});
+        marker.setLabel(label);
+        
+        // 存储标记到全局对象
+        markers[vehicle.plateNo] = marker;
+        
+        // 点击事件
+        marker.addEventListener("click", function(e) {
+            showVehicleInfo(this.vehicleInfo);
+            centerAndZoomToVehicle(this.vehicleInfo.plateNo);
+        });
+    }
+    
+    // 显示车辆信息
+    function showVehicleInfo(vehicle) {
+        document.getElementById("plateNo").textContent = vehicle.plateNo;
+        document.getElementById("vehicleType").textContent = vehicle.type;
+        document.getElementById("driverName").textContent = vehicle.driver;
+        document.getElementById("driverPhone").textContent = vehicle.phone;
+        document.getElementById("vehicleBrand").textContent = vehicle.brand;
+        document.getElementById("currentLocation").textContent = vehicle.location;
+        document.getElementById("lastReportTime").textContent = vehicle.reportTime.toLocaleString();
+        document.getElementById("capacity").textContent = vehicle.capacity + "人";
+        document.getElementById("currentSpeed").textContent = vehicle.speed + "km/h";
+        
+        // 设置状态样式
+        var statusElement = document.getElementById("vehicleStatus");
+        statusElement.textContent = vehicle.status;
+        statusElement.className = "car-info-value ";
+        
+        if (vehicle.status === "运行中") {
+            statusElement.classList.add("status-running");
+        } else if (vehicle.status === "已停运") {
+            statusElement.classList.add("status-stopped");
+        } else {
+            statusElement.classList.add("status-warning");
+        }
+    }
+    
+    // 中心化并缩放至指定车辆
+    function centerAndZoomToVehicle(plateNo) {
+        if (markers[plateNo]) {
+            // 移除之前的高亮效果
+            if (currentHighlightMarker) {
+                currentHighlightMarker.setAnimation(null);
+                currentHighlightMarker.setIcon(null);
+            }
+            
+            // 设置新的高亮效果
+            var marker = markers[plateNo];
+            marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+            marker.setIcon(new BMap.Icon("", new BMap.Size(32, 32), {
+                anchor: new BMap.Size(16, 16)
+            }));
+            
+            // 存储当前高亮标记
+            currentHighlightMarker = marker;
+            
+            // 中心化视图
+            map.centerAndZoom(marker.getPosition(), 15);
+            
+            // 5秒后取消高亮
+            setTimeout(function() {
+                marker.setAnimation(null);
+                marker.setIcon(null);
+                currentHighlightMarker = null;
+            }, 5000);
+        }
+    }
+    
+    // 搜索车辆
+    function searchVehicle() {
+        var plateNo = document.getElementById("plateSearch").value.trim();
+        
+        if (!plateNo) {
+            alert("请输入车牌号");
+            return;
+        }
+        
+        // 检查车牌号格式（简单验证）
+        if (!/^冀[A-T]\d{5}$/.test(plateNo)) {
+            alert("请输入正确的车牌号格式（如：冀A12345）");
+            return;
+        }
+        
+        if (markers[plateNo]) {
+            // 显示车辆信息
+            showVehicleInfo(markers[plateNo].vehicleInfo);
+            
+            // 中心化并高亮显示
+            centerAndZoomToVehicle(plateNo);
+        } else {
+            alert("未找到车牌号为 " + plateNo + " 的车辆");
+        }
+    }
+    
+    // 页面加载完成后初始化
+    $(document).ready(function() {
+        initMap();
+        // 在$(document).ready()函数中添加以下代码
+        $(
+        ".tab_a").click(function(
+        ) {
+            $(
+        ".tab_a").removeClass("tab_aActive"
+        );
+            $(
+        this).addClass("tab_aActive"
+        );
+            
+            if ($(this).text() === "基本信息"
+        ) {
+                $(
+        "#vehicleInfo").show
+        ();
+                $(
+        "#smartAnalysis").hide
+        ();
+            } 
+        else
+         {
+                $(
+        "#vehicleInfo").hide
+        ();
+                $(
+        "#smartAnalysis").show
+        ();
+                
+                // 这里可以添加获取智能分析数据的代码
+                // 示例数据
+                $(
+        "#drivingBehavior").text("安全驾驶评分: 92/100"
+        );
+                $(
+        "#routeSuggestion").text("当前路线拥堵，建议绕行建设大街"
+        );
+                $(
+        "#fuelConsumption").text("百公里油耗: 12.5L (行业平均: 11.8L)"
+        );
+                $(
+        "#maintenanceTip").text("下次保养里程: 3,200公里后"
+        );
+            }
+        });
+        // 初始化树形菜单
+        var zNodes = [
+            {name: "河北省车辆(5,672)", open: true, children: [
+                {name: "石家庄市(1,245)", open: true, children: [
+                    {name: "客运车辆(568)"},
+                    {name: "货运车辆(432)"},
+                    {name: "特种车辆(245)"}
+                ]},
+                {name: "唐山市(987)"},
+                {name: "秦皇岛市(756)"},
+                {name: "邯郸市(843)"},
+                {name: "邢台市(632)"},
+                {name: "保定市(1,125)"},
+                {name: "张家口市(543)"},
+                {name: "承德市(467)"},
+                {name: "沧州市(678)"},
+                {name: "廊坊市(589)"},
+                {name: "衡水市(406)"}
+            ]}
+        ];
+        
+        $.fn.zTree.init($("#treeDemo"), {
+            view: {
+                showLine: false,
+                selectedMulti: false
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            }
+        }, zNodes);
+        
+        // 绑定搜索按钮事件
+        $("#searchBtn").click(searchVehicle);
+        
+        // 绑定回车键搜索
+        $("#plateSearch").keypress(function(e) {
+            if (e.which == 13) {
+                searchVehicle();
+            }
+        });
+    });
+
+</script>
+</body>
+</html>
