@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字人选择</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --hover-color: #3367d6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #081832;
+            color: #081832;
+        }
+
+       .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+       .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+       .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+       .avatar-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+       .avatar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+       .avatar-img-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+       .avatar-img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+        }
+
+       .avatar-info {
+            padding: 20px;
+        }
+
+       .avatar-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+       .select-btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+       .select-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+       .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+       .back-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>选择您的数字人助手</h1>
+            <p class="subtitle">请选择您喜欢的数字人形象进行交互</p>
+        </header>
+
+        <div class="avatar-grid" id="avatarGrid"></div>
+
+        <div class="text-center">
+            <a href="#" class="back-btn">返回登录</a>
+        </div>
+    </div>
+
+    <script>
+        const AVATARS = [
+            {"id": 1, "name": "竹芯", "image": "avatar1.jpg"},
+            {"id": 2, "name": "小满", "image": "avatar2.jpg"},
+            {"id": 3, "name": "婉仪", "image": "avatar3.jpg"},
+            {"id": 4, "name": "浩然", "image": "avatar4.jpg"},
+            {"id": 5, "name": "诗雅", "image": "avatar5.jpg"},
+            {"id": 6, "name": "梦萱", "image": "avatar6.jpg"}
+        ];
+
+        const avatarGrid = document.getElementById('avatarGrid');
+
+        AVATARS.forEach(avatar => {
+            const card = document.createElement('div');
+            card.className = 'avatar-card';
+
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'avatar-img-container';
+
+            const img = document.createElement('img');
+            img.src = avatar.image;
+            img.alt = avatar.name;
+            img.className = 'avatar-img';
+
+            imgContainer.appendChild(img);
+
+            const info = document.createElement('div');
+            info.className = 'avatar-info';
+
+            const name = document.createElement('h3');
+            name.className = 'avatar-name';
+            name.textContent = avatar.name;
+
+            const selectBtn = document.createElement('button');
+            selectBtn.className ='select-btn';
+            selectBtn.textContent = '选择';
+            selectBtn.onclick = () => selectAvatar(avatar.id);
+
+            info.appendChild(name);
+            info.appendChild(selectBtn);
+
+            card.appendChild(imgContainer);
+            card.appendChild(info);
+
+            avatarGrid.appendChild(card);
+        });
+
+        function selectAvatar(avatar) {
+            localStorage.setItem('selectedAvatar', JSON.stringify(avatar));
+            // 跳转到交互页面
+            window.location.href = 'interaction.html';
+        }
+    </script>
+</body>
+
+</html>

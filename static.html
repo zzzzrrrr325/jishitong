@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>交通数据查询分析平台</title>
+    <link rel="stylesheet" href="base.css">
+    <meta name="viewport" content="width=device-width">
+    <style>
+        /* 添加以下CSS到base.css或页面style标签中 */
+        .query_btn,
+        .reset_btn {
+            padding: 5px 15px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .query_btn {
+            background-color: #1E88E5;
+            color: white;
+        }
+
+        .query_btn:hover {
+            background-color: #1565C0;
+        }
+
+        .reset_btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .reset_btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .org {
+            color: #FF9800;
+            font-weight: bold;
+        }
+
+        .red {
+            color: #F44336;
+            font-weight: bold;
+        }
+
+        .sky {
+            color: #03A9F4;
+        }
+
+        /* 图表容器样式 */
+        .p_chart {
+            width: 100%;
+            height: 400px;
+            margin: 0;
+        }
+
+        /* 响应式布局调整 */
+        @media (max-width: 1200px) {
+            .div_any03 {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header left">
+        <div class="left nav">
+            <ul>
+                <li class="nav_active"><i class="nav_1"></i><a href="#" data-page="shuju.html">数据概览</a></li>
+                <li><i class="nav_2"></i><a href="#" data-page="carContrl.html">车辆监控</a></li>
+                <li><i class="nav_3"></i><a href="#" data-page="map.html">地图界面</a></li>
+            </ul>
+        </div>
+
+        <div class="header_center left">
+            <h2><strong>河北省交通综合服务平台</strong></h2>
+            <p class="color_font"><small>Hebei Comprehensive Transportation Service Platform</small></p>
+        </div>
+
+        <div class="right nav text_right">
+            <ul>
+                <li><i class="nav_7"></i><a href="#" data-page="static.html">查询统计</a></li>
+                <li><i class="nav_8"></i><a href="#" data-page="message.html">政策信息</a></li>
+                <li><i class="nav_4"></i><a href="#" data-page="table1.html">业务办理</a></li>
+                <li id="user-info">
+                    <i class="nav-user"></i>
+                    <span id="username-display">用户</span>
+                    <ul class="li_ul">
+                        <li><a href="#" id="logout-btn">退出登录</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <!--内容部分-->
+    <div class="con left">
+        <!--查询条件-->
+        <div class="static_top left">
+            <i></i><span>数据查询条件</span>
+        </div>
+        <!-- 查询表单部分 -->
+        <div class="stiatic_top_con left" id="searchForm">
+            <table>
+                <tr>
+                    <td class="labe_td">时间范围：</td>
+                    <td>
+                        <select id="timeRange">
+                            <option value="today">今日</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                            <option value="quarter">本季度</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </td>
+                    <td class="labe_td">地区：</td>
+                    <td>
+                        <select id="region">
+                            <option value="all">全省</option>
+                            <option value="shijiazhuang">石家庄</option>
+                            <option value="tangshan">唐山</option>
+                            <option value="qinhuangdao">秦皇岛</option>
+                            <option value="handan">邯郸</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labe_td">交通方式：</td>
+                    <td>
+                        <select id="transportType">
+                            <option value="all">全部</option>
+                            <option value="road">公路</option>
+                            <option value="railway">铁路</option>
+                            <option value="air">航空</option>
+                            <option value="water">水运</option>
+                        </select>
+                    </td>
+                    <td class="labe_td">数据类型：</td>
+                    <td>
+                        <select id="dataType">
+                            <option value="flow">流量数据</option>
+                            <option value="violation">违章数据</option>
+                            <option value="accident">事故数据</option>
+                            <option value="operation">运营数据</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="text_center">
+                        <button class="query_btn" id="searchBtn">查询</button>
+                        <button class="reset_btn" id="resetBtn">重置</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!--数据总览-->
+        <div class="static_top left">
+            <i></i><span>数据总览</span>
+        </div>
+        <div class="stiatic_top_con left">
+            <table>
+                <tr>
+                    <td class="labe_td">总概：</td>
+                    <td colspan="3" class="sky">当前查询范围内共有交通数据记录123,456条，其中违章记录12,345条，事故记录1,234条，整体交通安全形势平稳。</td>
+                </tr>
+                <tr>
+                    <td class="labe_td">公路流量：</td>
+                    <td>3,987,654辆次</td>
+                    <td class="labe_td">违章数量：</td>
+                    <td class="org">12,345起</td>
+                </tr>
+                <tr>
+                    <td class="labe_td">事故数量：</td>
+                    <td class="red">1,234起</td>
+                    <td class="labe_td">拥堵路段：</td>
+                    <td>56处</td>
+                </tr>
+            </table>
+        </div>
+
+        <!--统计分析-->
+        <div class="static_top left">
+            <i></i><span>交通流量分析</span>
+        </div>
+        <div class="div_any">
+            <div class="left div_any03">
+                <div class="div_any_child01 left">
+                    <div class="div_any_title"><img src="title_1.png">交通方式分布 </div>
+                    <p id="char1" class="p_chart"></p>
+                    <div class="char_table">
+                        <div class="table_p table_p01">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>交通方式</th>
+                                        <th>流量(万人次)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>公路客运</td><td>1,342</td></tr>
+                                    <tr><td>2</td><td>铁路</td><td>987</td></tr>
+                                    <tr><td>3</td><td>城市公交</td><td>856</td></tr>
+                                    <tr><td>4</td><td>航空</td><td>234</td></tr>
+                                    <tr><td>5</td><td>水运</td><td>56</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="div_any_child01 left">
+                    <div class="div_any_title"><img src="title_2.png">地区流量分布 </div>
+                    <p id="char2" class="p_chart"></p>
+                    <div class="char_table">
+                        <div class="table_p table_p01">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>地区</th>
+                                        <th>流量(万人次)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>石家庄</td><td>2,134</td></tr>
+                                    <tr><td>2</td><td>唐山</td><td>1,987</td></tr>
+                                    <tr><td>3</td><td>保定</td><td>1,856</td></tr>
+                                    <tr><td>4</td><td>邯郸</td><td>1,734</td></tr>
+                                    <tr><td>5</td><td>秦皇岛</td><td>1,256</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="static_top left">
+                <i></i><span>交通安全分析</span>
+            </div>
+            <div class="right div_any03">
+                <div class="div_any_child01 left">
+                    <div class="div_any_title"><img src="title_3.png">违章类型统计 </div>
+                    <p id="char3" class="p_chart"></p>
+                    <div class="char_table">
+                        <div class="table_p table_p01">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>违章类型</th>
+                                        <th>数量(起)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>超速行驶</td><td>5,342</td></tr>
+                                    <tr><td>2</td><td>闯红灯</td><td>3,987</td></tr>
+                                    <tr><td>3</td><td>违停</td><td>2,856</td></tr>
+                                    <tr><td>4</td><td>不系安全带</td><td>1,234</td></tr>
+                                    <tr><td>5</td><td>酒驾</td><td>456</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="div_any_child01 left">
+                    <div class="div_any_title"><img src="title_4.png">事故原因分析 </div>
+                    <p id="char4" class="p_chart"></p>
+                    <div class="char_table">
+                        <div class="table_p table_p01">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>事故原因</th>
+                                        <th>数量(起)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>超速</td><td>534</td></tr>
+                                    <tr><td>2</td><td>疲劳驾驶</td><td>398</td></tr>
+                                    <tr><td>3</td><td>酒驾</td><td>285</td></tr>
+                                    <tr><td>4</td><td>违规变道</td><td>123</td></tr>
+                                    <tr><td>5</td><td>车辆故障</td><td>45</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="static_top left">
+                <i></i><span>运输企业分析</span>
+            </div>
+            <div class="right div_any03">
+                <div class="div_any_child01 left div_any_child01_wh">
+                    <div class="div_any_title"><img src="title_5.png">企业运营情况 </div>
+                    <p id="char5" class="p_chart"></p>
+                    <div class="char_table">
+                        <div class="table_p table_p01">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>企业名称</th>
+                                        <th>运营车辆数</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>河北高速集团</td><td>1,342</td></tr>
+                                    <tr><td>2</td><td>石家庄运输公司</td><td>987</td></tr>
+                                    <tr><td>3</td><td>唐山交运集团</td><td>856</td></tr>
+                                    <tr><td>4</td><td>邯郸运输公司</td><td>734</td></tr>
+                                    <tr><td>5</td><td>保定客运公司</td><td>656</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="jQuery-2.2.0.min.js"></script>
+    <script src="echarts.min.js"></script>
+    <script>
+        // 交通数据查询分析平台 - 完整JS实现
+        $(document).ready(function () {
+            // 1. 初始化模拟数据
+            const trafficData = {
+                flow: {
+                    today: {
+                        all: initFlowData('河北省'),
+                        shijiazhuang: initFlowData('石家庄'),
+                        tangshan: initFlowData('唐山'),
+                        qinhuangdao: initFlowData('秦皇岛'),
+                        handan: initFlowData('邯郸')
+                    },
+                    week: {
+                        all: initFlowData('河北省', 5),
+                        shijiazhuang: initFlowData('石家庄', 5),
+                        tangshan: initFlowData('唐山', 5),
+                        qinhuangdao: initFlowData('秦皇岛', 5),
+                        handan: initFlowData('邯郸', 5)
+                    },
+                    month: {
+                        all: initFlowData('河北省', 20),
+                        shijiazhuang: initFlowData('石家庄', 20),
+                        tangshan: initFlowData('唐山', 20),
+                        qinhuangdao: initFlowData('秦皇岛', 20),
+                        handan: initFlowData('邯郸', 20)
+                    }
+                },
+                violation: {
+                    today: {
+                        all: initViolationData('河北省'),
+                        shijiazhuang: initViolationData('石家庄'),
+                        tangshan: initViolationData('唐山'),
+                        qinhuangdao: initViolationData('秦皇岛'),
+                        handan: initViolationData('邯郸')
+                    },
+                    week: {
+                        all: initViolationData('河北省', 5),
+                        shijiazhuang: initViolationData('石家庄', 5),
+                        tangshan: initViolationData('唐山', 5),
+                        qinhuangdao: initViolationData('秦皇岛', 5),
+                        handan: initViolationData('邯郸', 5)
+                    }
+                },
+                accident: {
+                    today: {
+                        all: initAccidentData('河北省'),
+                        shijiazhuang: initAccidentData('石家庄'),
+                        tangshan: initAccidentData('唐山'),
+                        qinhuangdao: initAccidentData('秦皇岛'),
+                        handan: initAccidentData('邯郸')
+                    },
+                    week: {
+                        all: initAccidentData('河北省', 5),
+                        shijiazhuang: initAccidentData('石家庄', 5),
+                        tangshan: initAccidentData('唐山', 5),
+                        qinhuangdao: initAccidentData('秦皇岛', 5),
+                        handan: initAccidentData('邯郸', 5)
+                    }
+                },
+                operation: {
+                    today: {
+                        all: initOperationData('河北省'),
+                        shijiazhuang: initOperationData('石家庄'),
+                        tangshan: initOperationData('唐山'),
+                        qinhuangdao: initOperationData('秦皇岛'),
+                        handan: initOperationData('邯郸')
+                    },
+                    week: {
+                        all: initOperationData('河北省', 5),
+                        shijiazhuang: initOperationData('石家庄', 5),
+                        tangshan: initOperationData('唐山', 5),
+                        qinhuangdao: initOperationData('秦皇岛', 5),
+                        handan: initOperationData('邯郸', 5)
+                    }
+                }
+            };
+
+            // 数据初始化函数
+            function initFlowData(region, multiplier = 1) {
+                return {
+                    total: 123456 * multiplier,
+                    violation: 12345 * multiplier,
+                    accident: 1234 * multiplier,
+                    vehicleTypes: [
+                        { name: "私家车", value: 335 * multiplier },
+                        { name: "公交", value: 310 * multiplier },
+                        { name: "货运", value: 234 * multiplier },
+                        { name: "火车", value: 135 * multiplier }
+                    ],
+                    regionData: region === '河北省' ? [
+                        { name: "石家庄", value: 2134 * multiplier },
+                        { name: "唐山", value: 1987 * multiplier },
+                        { name: "保定", value: 1856 * multiplier },
+                        { name: "邯郸", value: 1734 * multiplier },
+                        { name: "秦皇岛", value: 1256 * multiplier }
+                    ] : [
+                        { name: `${region}区1`, value: 800 * multiplier },
+                        { name: `${region}区2`, value: 700 * multiplier },
+                        { name: `${region}区3`, value: 600 * multiplier },
+                        { name: `${region}区4`, value: 500 * multiplier },
+                        { name: `${region}区5`, value: 400 * multiplier }
+                    ]
+                };
+            }
+
+            function initViolationData(region, multiplier = 1) {
+                return {
+                    types: [
+                        { name: "超速行驶", count: 5342 * multiplier },
+                        { name: "闯红灯", count: 3987 * multiplier },
+                        { name: "违停", count: 2856 * multiplier },
+                        { name: "不系安全带", count: 1234 * multiplier },
+                        { name: "酒驾", count: 456 * multiplier }
+                    ],
+                    vehicleStatus: [
+                        { name: "行驶", value: 320 * multiplier },
+                        { name: "停车", value: 120 * multiplier },
+                        { name: "熄火", value: 220 * multiplier },
+                        { name: "离线", value: 150 * multiplier }
+                    ]
+                };
+            }
+
+            function initAccidentData(region, multiplier = 1) {
+                return {
+                    causes: [
+                        { name: "超速", count: 534 * multiplier },
+                        { name: "疲劳驾驶", count: 398 * multiplier },
+                        { name: "酒驾", count: 285 * multiplier },
+                        { name: "违规变道", count: 123 * multiplier },
+                        { name: "车辆故障", count: 45 * multiplier }
+                    ],
+                    speedDistribution: [
+                        { name: "0", value: 15 * multiplier },
+                        { name: "10", value: 0 * multiplier },
+                        { name: "20", value: 20 * multiplier },
+                        { name: "30", value: 45 * multiplier },
+                        { name: "40", value: 22 * multiplier },
+                        { name: "50", value: 25 * multiplier },
+                        { name: "60", value: 70 * multiplier },
+                        { name: "70", value: 55 * multiplier },
+                        { name: "80", value: 76 * multiplier }
+                    ]
+                };
+            }
+
+            function initOperationData(region, multiplier = 1) {
+                return {
+                    companies: [
+                        { name: "河北高速集团", count: 1342 * multiplier },
+                        { name: `${region}运输公司`, count: 987 * multiplier },
+                        { name: `${region}交运集团`, count: 856 * multiplier },
+                        { name: `${region}公交公司`, count: 734 * multiplier },
+                        { name: `${region}客运公司`, count: 656 * multiplier }
+                    ],
+                    alarmData: [
+                        { name: "私家车", value: 2900 * multiplier },
+                        { name: "公交", value: 1200 * multiplier },
+                        { name: "货运", value: 300 * multiplier },
+                        { name: "火车", value: 200 * multiplier }
+                    ]
+                };
+            }
+
+            // 2. 初始化所有图表
+            const charts = {
+                char1: initChart('char1'),
+                char2: initChart('char2'),
+                char3: initChart('char3'),
+                char4: initChart('char4'),
+                char5: initChart('char5')
+            };
+
+            function initChart(containerId) {
+                const chart = echarts.init(document.getElementById(containerId));
+                // 默认显示一个空图表防止报错
+                chart.setOption({
+                    title: {
+                        text: '数据加载中...',
+                        left: 'center',
+                        top: 'center'
+                    }
+                });
+                return chart;
+            }
+
+            // 3. 窗口大小变化时重绘图表
+            window.addEventListener('resize', function () {
+                Object.values(charts).forEach(chart => {
+                    chart && chart.resize();
+                });
+            });
+
+            // 4. 搜索和重置功能
+            $("#searchBtn").click(searchData);
+            $("#resetBtn").click(function () {
+                $("#timeRange").val("today");
+                $("#region").val("all");
+                $("#transportType").val("all");
+                $("#dataType").val("flow");
+                searchData();
+            });
+
+            // 5. 核心搜索功能
+            function searchData() {
+                const timeRange = $("#timeRange").val();
+                const region = $("#region").val();
+                const dataType = $("#dataType").val();
+
+                // 获取数据
+                const data = trafficData[dataType][timeRange][region];
+
+                // 更新表格数据
+                updateData(data, dataType);
+
+                // 更新图表
+                updateCharts(data, dataType);
+            }
+
+            // 6. 更新表格数据
+            function updateData(data, dataType) {
+                if (dataType === "flow") {
+                    // 更新流量数据
+                    $(".sky").text(`当前查询范围内共有交通数据记录${data.total.toLocaleString()}条，其中违章记录${data.violation.toLocaleString()}条，事故记录${data.accident.toLocaleString()}条，整体交通安全形势平稳。`);
+
+                    // 更新交通方式分布表格
+                    let tableHtml1 = '';
+                    data.vehicleTypes.forEach((item, index) => {
+                        tableHtml1 += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.value.toLocaleString()}</td></tr>`;
+                    });
+                    $("#char1").next().find("tbody").html(tableHtml1);
+
+                    // 更新地区流量分布表格
+                    let tableHtml2 = '';
+                    data.regionData.forEach((item, index) => {
+                        tableHtml2 += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.value.toLocaleString()}</td></tr>`;
+                    });
+                    $("#char2").next().find("tbody").html(tableHtml2);
+
+                } else if (dataType === "violation") {
+                    // 更新违章类型表格
+                    let tableHtml = '';
+                    data.types.forEach((item, index) => {
+                        tableHtml += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.count.toLocaleString()}</td></tr>`;
+                    });
+                    $("#char3").next().find("tbody").html(tableHtml);
+
+                } else if (dataType === "accident") {
+                    // 更新事故原因表格
+                    let tableHtml = '';
+                    data.causes.forEach((item, index) => {
+                        tableHtml += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.count.toLocaleString()}</td></tr>`;
+                    });
+                    $("#char4").next().find("tbody").html(tableHtml);
+
+                } else if (dataType === "operation") {
+                    // 更新企业运营表格
+                    let tableHtml = '';
+                    data.companies.forEach((item, index) => {
+                        tableHtml += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.count.toLocaleString()}</td></tr>`;
+                    });
+                    $("#char5").next().find("tbody").html(tableHtml);
+                }
+            }
+
+            // 7. 更新图表（完整实现）
+            function updateCharts(data, dataType) {
+                switch (dataType) {
+                    case "flow":
+                        updateFlowTypeChart(data.vehicleTypes);
+                        updateRegionFlowChart(data.regionData);
+                        break;
+
+                    case "violation":
+                        updateViolationTypeChart(data.types);
+                        break;
+
+                    case "accident":
+                        updateAccidentCauseChart(data.causes);
+                        break;
+
+                    case "operation":
+                        updateCompanyOpChart(data.companies);
+                        break;
+                }
+            }
+
+            // 8. 各个图表的更新函数（完整实现）
+            function updateFlowTypeChart(data) {
+                charts.char1.setOption({
+					title: { text: '交通方式分布', left: 'center' , show: false},
+                    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+                    legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        data: data.map(item => item.name)
+                    },
+                    series: [{
+                        name: '交通方式',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        data: data,
+                        emphasis: { itemStyle: { shadowBlur: 10 } },
+                        label: { show: false }
+                    }]
+                });
+            }
+
+            function updateRegionFlowChart(data) {
+                charts.char2.setOption({
+                   title: { text: '地区流量分布', left: 'center' , show: false},
+                    tooltip: { trigger: 'axis' },
+                    grid: { containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: data.map(item => item.name),
+                        axisLabel: { rotate: 30 }
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '流量',
+                        type: 'bar',
+                        data: data.map(item => item.value),
+                        itemStyle: {
+                            color: function (params) {
+                                const colors = ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae'];
+                                return colors[params.dataIndex % colors.length];
+                            }
+                        },
+                        label: { show: true, position: 'top' }
+                    }]
+                });
+            }
+
+            function updateViolationTypeChart(data) {
+                charts.char3.setOption({
+                    title: { text: '地区流量分布', left: 'center' , show: false},
+                    tooltip: { trigger: 'axis' },
+                    grid: { containLabel: true },
+                    xAxis: { type: 'value' },
+                    yAxis: {
+                        type: 'category',
+                        data: data.map(item => item.name)
+                    },
+                    series: [{
+                        name: '违章数量',
+                        type: 'bar',
+                        data: data.map(item => item.count),
+                        itemStyle: {
+                            color: function (params) {
+                                const colors = ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE'];
+                                return colors[params.dataIndex % colors.length];
+                            }
+                        },
+                        label: { show: true, position: 'right' }
+                    }]
+                });
+            }
+
+            function updateAccidentCauseChart(data) {
+                charts.char4.setOption({
+                   title: { text: '地区流量分布', left: 'center' , show: false},
+                    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+                    legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        data: data.map(item => item.name)
+                    },
+                    series: [{
+                        name: '事故原因',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['40%', '50%'],
+                        data: data.map(item => ({
+                            value: item.count,
+                            name: item.name,
+                            itemStyle: {
+                                color: getRandomColor()
+                            }
+                        })),
+                        label: { formatter: '{b}: {c} ({d}%)' }
+                    }]
+                });
+            }
+
+            function updateCompanyOpChart(data) {
+                charts.char5.setOption({
+                   title: { text: '地区流量分布', left: 'center' , show: false},
+                    tooltip: { trigger: 'axis' },
+                    grid: { containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: data.map(item => item.name),
+                        axisLabel: { rotate: 30 }
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '运营车辆数',
+                        type: 'bar',
+                        barWidth: '40%',
+                        data: data.map(item => item.count),
+                        itemStyle: {
+                            color: function (params) {
+                                const colors = ['#4CAF50', '#8BC34A', '#CDDC39', '#FFC107', '#FF9800'];
+                                return colors[params.dataIndex % colors.length];
+                            }
+                        },
+                        label: { show: true, position: 'top' }
+                    }]
+                });
+            }
+
+            // 辅助函数
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            // 9. 初始化页面
+            searchData();
+        });
+
+        // 导航功能实现
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('a[data-page]');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault(); // 阻止默认跳转行为
+                    const page = this.getAttribute('data-page');
+
+                    if (page) {
+                        // 这里使用alert模拟，实际应该跳转到对应页面
+                        alert(`即将跳转到: ${page}`);
+                        window.location.href = page;
+                    }
+                });
+            });
+
+            // 退出登录功能
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // 确认退出
+                if (confirm('确定要退出登录吗？')) {
+                    alert('您已成功退出登录');
+                    window.location.href = 'index.html';
+                }
+            });
+        });
+    </script>
+</body>

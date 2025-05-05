@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>河北省交通综合服务平台 - 业务办理</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap-table.css">
+    <link rel="stylesheet" href="base.css">
+    <link href="zTreeStyle.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            background-color: #253a62; /* 使用更柔和的官方蓝色 */
+            min-height: 100vh;
+        }
+
+        /* 保持内容区域背景为白色 */
+        .business-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 30px 40px !important; /* 增加内边距 */
+            margin: 20px auto;
+        }
+        /* 主容器样式 */
+        .business-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* 业务分类导航 */
+        .business-nav {
+            display: flex;
+            border-bottom: 2px solid #1890ff;
+            margin-bottom: 20px;
+        }
+
+        .business-nav-item {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .business-nav-item.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+        }
+
+        .business-nav-item:hover {
+            color: #0aebff;
+        }
+
+        /* 业务内容区域 */
+        .business-content {
+            display: none;
+        }
+
+        .business-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 业务卡片 */
+        .business-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .business-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .business-card-header {
+            background: #f0f7ff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .business-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1890ff;
+            margin: 0;
+        }
+
+        .business-card-body {
+            padding: 20px;
+        }
+
+        .business-card-desc {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .business-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px 20px;
+        }
+
+        .business-card-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e6f7ff;
+            color: #1890ff;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .business-card-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .business-card-btn:hover {
+            background: #40a9ff;
+            color: white;
+        }
+
+        /* 进度条样式 */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-step {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .step-active .step-number {
+            background: #1890ff;
+            color: white;
+        }
+
+        .step-complete .step-number {
+            background: #52c41a;
+            color: white;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 表单样式 */
+        .business-form {
+            background: #a1d2ff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .business-nav {
+                flex-wrap: wrap;
+            }
+
+            .business-nav-item {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* 新增预约表单样式 */
+        #simple-appointment-form {
+            display: none;
+        }
+
+        /* 新增预约记录表格样式 */
+        .appointment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .appointment-table th,
+        .appointment-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .appointment-table th {
+            background-color: #f0f7ff;
+        }
+
+        .status-pending {
+            color: orange;
+        }
+		.hide { display: none; }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<header class="header left">
+    <div class="left nav">
+        <ul>
+            <li class="nav_active"><i class="nav_1"></i><a href="#" data-page="shuju.html">数据概览</a></li>
+            <li><i class="nav_2"></i><a href="#" data-page="carContrl.html">车辆监控</a></li>
+            <li><i class="nav_3"></i><a href="#" data-page="map.html">地图界面</a></li>
+        </ul>
+    </div>
+
+    <div class="header_center left">
+        <h2><strong>河北省交通综合服务平台</strong></h2>
+        <p class="color_font"><small>Hebei Comprehensive Transportation Service Platform</small></p>
+    </div>
+
+    <div class="right nav text_right">
+        <ul>
+            <li><i class="nav_7"></i><a href="#" data-page="static.html">查询统计</a></li>
+            <li><i class="nav_8"></i><a href="#" data-page="message.html">政策信息</a></li>
+            <li><i class="nav_4"></i><a href="#" data-page="table1.html">业务办理</a></li>
+            <li id="user-info">
+                <i class="nav-user"></i>
+                <span id="username-display">用户</span>
+                <ul class="li_ul">
+                    <li><a href="#" id="logout-btn">退出登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</header>
+
+<div class="clear"></div>
+
+<!-- 业务办理主内容 -->
+<div class="business-container">
+    <h1 style="margin-bottom: 20px; color: #333;">交通业务办理中心</h1>
+
+    <!-- 业务分类导航 -->
+    <div class="business-nav">
+        <div class="business-nav-item active" data-target="vehicle">车辆业务</div>
+        <div class="business-nav-item" data-target="driver">驾驶员业务</div>
+        <div class="business-nav-item" data-target="enterprise">运输企业业务</div>
+        <div class="business-nav-item" data-target="violation">交通违章处理</div>
+        <div class="business-nav-item" data-target="progress">办理进度查询</div>
+        <div class="business-nav-item" data-target="appointments">我的预约</div>
+    </div>
+
+    <!-- 车辆业务内容 -->
+    <div id="vehicle" class="business-content active">
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">车辆注册登记</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">为新购置的机动车办理注册登记手续，领取机动车号牌、行驶证和登记证书。适用于在河北省内购买的新车或转入河北省的车辆。</p>
+                <div>
+                    <span class="business-card-tag">需现场办理</span>
+                    <span class="business-card-tag">3-5个工作日</span>
+                    <span class="business-card-tag">费用：120元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>办理地点：各市车管所</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="车辆注册登记">在线预约</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">车辆年检预约</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">机动车安全技术检验预约服务，可在线选择检测站和时间段，减少现场排队时间。适用于河北省内注册的机动车。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">1个工作日</span>
+                    <span class="business-card-tag">费用：根据车型</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>支持全省200+检测站</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="车辆年检预约">立即预约</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">车辆过户办理</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">机动车所有权转移登记服务，买卖双方可在线提交申请材料，预约现场办理时间。适用于河北省内机动车所有权转移。</p>
+                <div>
+                    <span class="business-card-tag">需现场办理</span>
+                    <span class="business-card-tag">1-2个工作日</span>
+                    <span class="business-card-tag">费用：50元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>需双方到场</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="车辆过户办理">在线申请</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 驾驶员业务内容 -->
+    <div id="driver" class="business-content">
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">驾驶证换证</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">驾驶证到期换证或遗失补办服务，可在线提交申请，邮寄送达新证件。</p>
+                <div>
+                    <span class="business-card-tag">部分网办</span>
+                    <span class="business-card-tag">3个工作日</span>
+                    <span class="business-card-tag">费用：20元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>支持邮寄服务</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="驾驶证换证">在线办理</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">从业资格证申请</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">道路运输从业人员资格证初次申请服务，适用于货运、客运等驾驶员。</p>
+                <div>
+                    <span class="business-card-tag">需考试</span>
+                    <span class="business-card-tag">15个工作日</span>
+                    <span class="business-card-tag">费用：180元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>有效期：6年</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="从业资格证申请">在线申请</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">从业资格证年审</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">道路运输从业人员资格证年度诚信考核服务，可在线提交材料。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">3个工作日</span>
+                    <span class="business-card-tag">费用：30元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>每年一次</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="从业资格证年审">在线办理</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 运输企业业务内容 -->
+    <div id="enterprise" class="business-content">
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">道路运输经营许可证</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">道路运输企业经营许可证初次申请服务，适用于货运、客运等企业。</p>
+                <div>
+                    <span class="business-card-tag">需现场核查</span>
+                    <span class="business-card-tag">20个工作日</span>
+                    <span class="business-card-tag">费用：300元</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>有效期：4年</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="道路运输经营许可证">在线申请</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">车辆道路运输证</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">营运车辆道路运输证申请服务，企业可在线为所属车辆申请。</p>
+                <div>
+                    <span class="business-card-tag">部分网办</span>
+                    <span class="business-card-tag">10个工作日</span>
+                    <span class="business-card-tag">费用：50元/车</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>需车辆检测合格</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="车辆道路运输证">在线申请</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">企业质量信誉考核</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">道路运输企业年度质量信誉考核服务，在线提交考核材料。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">30个工作日</span>
+                    <span class="business-card-tag">免费</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>每年一次</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="企业质量信誉考核">在线办理</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交通违章处理内容 -->
+    <div id="violation" class="business-content">
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">电子监控违法处理</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">电子监控抓拍的交通违法行为在线处理服务，可在线缴纳罚款。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">即时办理</span>
+                    <span class="business-card-tag">支持多种支付</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>处理范围：简易程序违法</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="电子监控违法处理">在线处理</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">现场处罚决定书缴费</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">交警现场开具的处罚决定书在线缴费服务，需输入决定书编号。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">即时办理</span>
+                    <span class="business-card-tag">支持多种支付</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>支持电子文书</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="现场处罚决定书缴费">在线缴费</a>
+            </div>
+        </div>
+
+        <div class="business-card">
+            <div class="business-card-header">
+                <h3 class="business-card-title">违法申诉申请</h3>
+            </div>
+            <div class="business-card-body">
+                <p class="business-card-desc">对交通违法处罚有异议的申诉服务，在线提交申诉材料。</p>
+                <div>
+                    <span class="business-card-tag">可全流程网办</span>
+                    <span class="business-card-tag">15个工作日</span>
+                    <span class="business-card-tag">免费</span>
+                </div>
+            </div>
+            <div class="business-card-footer">
+                <div>
+                    <span>需提供证据材料</span>
+                </div>
+                <a href="#" class="business-card-btn appointment-btn" data-type="违法申诉申请">在线申诉</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 办理进度查询内容 -->
+    <div id="progress" class="business-content">
+        <div class="business-form">
+            <h3 style="margin-top: 0;">办理进度查询</h3>
+            <div class="form-group">
+                <label for="progress-number">业务受理编号</label>
+                <input type="text" id="progress-number" class="form-control" placeholder="请输入业务受理编号">
+            </div>
+            <div class="form-group">
+                <label for="progress-idcard">身份证号码</label>
+                <input type="text" id="progress-idcard" class="form-control" placeholder="请输入申请人身份证号码">
+            </div>
+            <div class="form-actions">
+                <button class="business-card-btn" id="progress-query">查询进度</button>
+            </div>
+        </div>
+
+        <div class="progress-container" id="progress-detail" style="display: none;">
+            <h4>业务办理进度</h4>
+            <div class="progress-step step-complete">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">申请提交</div>
+                    <div class="step-desc">2023-10-15 09:30:22 提交申请材料</div>
+                </div>
+            </div>
+            <div class="progress-step step-complete">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">材料审核</div>
+                    <div class="step-desc">2023-10-16 14:15:36 材料审核通过</div>
+                </div>
+            </div>
+            <div class="progress-step step-active">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">业务办理</div>
+                    <div class="step-desc">预计完成时间：2023-10-18</div>
+                </div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">结果反馈</div>
+                    <div class="step-desc">办理完成后将通过短信通知</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 简易预约表单 (初始隐藏) -->
+    <div id="simple-appointment-form" class="business-form" style="display: none;">
+        <h3 id="appointment-title">预约表单</h3>
+
+        <div class="form-group">
+            <label for="simple-type">业务类型</label>
+            <input type="text" id="simple-type" class="form-control" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="simple-date">预约日期</label>
+            <input type="date" id="simple-date" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="simple-name">姓名</label>
+            <input type="text" id="simple-name" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="simple-phone">手机号码</label>
+            <input type="tel" id="simple-phone" class="form-control" required>
+        </div>
+
+        <div class="form-actions">
+            <button id="simple-cancel" class="business-card-btn" style="background: #ccc;">取消</button>
+            <button id="simple-submit" class="business-card-btn">提交预约</button>
+        </div>
+    </div>
+
+    <!-- 我的预约内容 -->
+    <div id="appointments" class="business-content">
+        <h2>我的预约记录</h2>
+
+        <table class="appointment-table">
+            <thead>
+            <tr>
+                <th>预约编号</th>
+                <th>业务类型</th>
+                <th>预约日期</th>
+                <th>姓名</th>
+                <th>状态</th>
+            </tr>
+            </thead>
+            <tbody id="appointment-list">
+            <!-- 预约记录将通过JavaScript动态生成 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="jQuery-2.2.0.min.js"></script>
+<script src="base.js"></script>
+<script src="table1.js"></script>
+<script src="jquery.ztree.all-3.5.js"></script>
+<script src="listTree.js"></script>
+<script src="bootstrap.min.js"></script>
+<script src="bootstrap-table.js"></script>
+<script src="bootstrap-table-zh-CN.min.js"></script>
+<script src="layer.js"></script>
+<script>
+    // 导航功能实现
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('a[data-page]');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); // 阻止默认跳转行为
+                const page = this.getAttribute('data-page');
+
+                if (page) {
+                    // 这里使用alert模拟，实际应该跳转到对应页面
+                    alert(`即将跳转到: ${page}`);
+                    window.location.href = page;
+                }
+            });
+        });
+
+        // 退出登录功能
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // 确认退出
+            if (confirm('确定要退出登录吗？')) {
+                alert('您已成功退出登录');
+                window.location.href = 'index.html';
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        // 业务分类导航切换
+        $('.business-nav-item').click(function() {
+            $('.business-nav-item').removeClass('active');
+            $(this).addClass('active');
+
+            var target = $(this).data('target');
+            $('.business-content').removeClass('active');
+            $('#' + target).addClass('active');
+
+            if (target === 'appointments') {
+                loadAppointments();
+            }
+        });
+
+        // 查询进度按钮点击事件
+        $('#progress-query').click(function() {
+            var number = $('#progress-number').val();
+            var idcard = $('#progress-idcard').val();
+
+            if(number && idcard) {
+                // 模拟查询结果
+                $('#progress-detail').show();
+            } else {
+                layer.msg('请输入业务受理编号和身份证号码');
+            }
+        });
+
+        // 业务办理按钮点击事件
+        $('.business-card-btn').click(function(e) {
+            e.preventDefault();
+            var id = $(this).attr('id');
+            var title = $(this).closest('.business-card').find('.business-card-title').text();
+
+            layer.msg('即将跳转到' + title + '页面');
+            // 实际应用中这里应该是跳转到相应业务办理页面
+        });
+
+        // 预约按钮点击事件
+        document.querySelectorAll('.appointment-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                showAppointmentForm(type);
+            });
+        });
+
+        // 显示预约表单
+        function showAppointmentForm(type) {
+            document.getElementById('simple-type').value = type;
+            document.getElementById('appointment-title').textContent = type + ' - 预约表单';
+
+            // 设置最小日期为今天
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            const minDate = yyyy + '-' + mm + '-' + dd;
+
+            document.getElementById('simple-date').value = minDate;
+            document.getElementById('simple-date').min = minDate;
+
+            // 清空其他字段
+            document.getElementById('simple-name').value = '';
+            document.getElementById('simple-phone').value = '';
+
+            // 显示表单
+            document.getElementById('simple-appointment-form').style.display = 'block';
+
+            // 滚动到表单位置
+            document.getElementById('simple-appointment-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 取消预约
+        document.getElementById('simple-cancel').addEventListener('click', function() {
+            document.getElementById('simple-appointment-form').style.display = 'none';
+        });
+
+        // 提交预约
+document.getElementById('simple-submit').addEventListener('click', function() {
+    if (validateForm()) {
+        const appointment = {
+            id: 'AP-' + Date.now().toString().slice(-6),
+            type: document.getElementById('simple-type').value,
+            date: document.getElementById('simple-date').value,
+            name: document.getElementById('simple-name').value,
+            phone: document.getElementById('simple-phone').value,
+            status: 'pending',
+            createdAt: new Date().toLocaleString()
+        };
+
+        saveAppointment(appointment);
+        alert('预约成功！预约编号：' + appointment.id);
+
+        // 重置表单
+        document.getElementById('simple-appointment-form').style.display = 'none';
+
+        // 刷新预约列表
+        loadAppointments();
+    }
+});
+        // 表单验证
+        function validateForm() {
+            let isValid = true;
+
+            // 清除之前的错误状态
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.classList.remove('error');
+            });
+
+            // 检查必填字段
+            const requiredFields = ['simple-date', 'simple-name', 'simple-phone'];
+            requiredFields.forEach(id => {
+                const field = document.getElementById(id);
+                if (!field.value.trim()) {
+                    field.classList.add('error');
+                    isValid = false;
+                }
+            });
+
+            // 验证手机号格式
+            const phone = document.getElementById('simple-phone').value;
+            if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
+                document.getElementById('simple-phone').classList.add('error');
+                alert('请输入正确的手机号码');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // 保存预约到localStorage
+        function saveAppointment(data) {
+            let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+            appointments.push(data);
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+        }
+
+        // 加载预约记录
+        function loadAppointments() {
+            const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+            const tbody = document.getElementById('appointment-list');
+            tbody.innerHTML = '';
+
+            if (appointments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">暂无预约记录</td></tr>';
+                return;
+            }
+
+            appointments.forEach(app => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${app.id}</td>
+                    <td>${app.type}</td>
+                    <td>${app.date}</td>
+                    <td>${app.name}</td>
+                    <td class="status-pending">${app.status === 'pending' ? '待确认' : '已确认'}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+// 检查并更新预约状态
+    function checkAndUpdateAppointmentStatus() {
+        let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+        const currentDate = new Date();
+
+        appointments.forEach(app => {
+            if (app.status === 'pending') {
+                const appointmentDate = new Date(app.createdAt);
+                const diffTime = Math.abs(currentDate - appointmentDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays >= 3) {
+                    app.status = '已确认';
+                }
+            }
+        });
+
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+        loadAppointments();
+    }
+
+    // 页面加载时检查并更新预约状态
+    checkAndUpdateAppointmentStatus();
+
+    // 定时检查并更新预约状态（例如每小时检查一次）
+    setInterval(checkAndUpdateAppointmentStatus, 60 * 60 * 1000);
+        // 初始化页面时加载预约记录
+        loadAppointments();
+    });
+</script>
+</body>
+</html>
+    

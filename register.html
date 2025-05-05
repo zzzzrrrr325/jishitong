@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户注册</title>
+    <style>
+        body {
+            background-image: url('traffic.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .register-container {
+            width: 400px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <h2>河北省交通综合服务平台</h2>
+            <p>用户注册</p>
+        </div>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="reg-username">用户名</label>
+                <input type="text" id="reg-username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-email">邮箱</label>
+                <input type="email" id="reg-email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">密码</label>
+                <input type="password" id="reg-password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-confirm-password">确认密码</label>
+                <input type="password" id="reg-confirm-password" class="form-control" required>
+            </div>
+            <div class="error-message" id="reg-errorMessage"></div>
+            <button type="submit" class="btn">注册</button>
+        </form>
+        <div class="index-link">
+            <span>已有账号？</span>
+            <a href="index.html">立即登录</a>
+        </div>
+    </div>
+
+    <script>
+        // 使用localStorage存储用户数据
+        if(!localStorage.getItem('users')) {
+            // 初始化默认用户
+            const defaultUser = {
+                username: 'admin',
+                email: 'admin@example.com',
+                password: 'admin123'
+            };
+            localStorage.setItem('users', JSON.stringify([defaultUser]));
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            const errorMessage = document.getElementById('reg-errorMessage');
+            
+            // 验证密码是否匹配
+            if(password !== confirmPassword) {
+                errorMessage.textContent = '两次输入的密码不一致';
+                return;
+            }
+            
+            // 检查用户名是否已存在
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userExists = users.some(user => user.username === username);
+            
+            if(userExists) {
+                errorMessage.textContent = '用户名已存在';
+                return;
+            }
+            
+            // 添加新用户
+            const newUser = { username, email, password };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // 注册成功，跳转到登录页面
+            alert('注册成功！请登录');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

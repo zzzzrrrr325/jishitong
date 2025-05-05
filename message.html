@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>河北省交通综合服务平台 - 政策信息</title>
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="tail.css">
+    <style>
+        /* 政策信息主容器 */
+        .policy-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        /* 搜索和筛选区域 */
+        .policy-filter {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .filter-item select, 
+        .filter-item input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+        }
+        
+        .search-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .search-btn:hover {
+            background: #40a9ff;
+        }
+        
+        /* 政策分类导航 */
+        .policy-nav {
+            display: flex;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 20px;
+        }
+        
+        .policy-nav-item {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .policy-nav-item.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+        }
+        
+        .policy-nav-item:hover {
+            color: #40a9ff;
+        }
+        
+        /* 政策内容区域 */
+        .policy-content {
+            display: none;
+        }
+        
+        .policy-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 政策卡片 */
+        .policy-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .policy-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .policy-card-header {
+            background: #f0f7ff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .policy-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1890ff;
+            margin: 0;
+        }
+        
+        .policy-card-date {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .policy-card-body {
+            padding: 20px;
+        }
+        
+        .policy-card-desc {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .policy-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px 20px;
+        }
+        
+        .policy-card-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e6f7ff;
+            color: #1890ff;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        .policy-card-link {
+            color: #1890ff;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .policy-card-link:hover {
+            text-decoration: underline;
+        }
+        
+        .policy-card-link i {
+            margin-left: 5px;
+        }
+        
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            padding: 20px 0;
+        }
+        
+        .page-item {
+            margin: 0 5px;
+        }
+        
+        .page-link {
+            display: block;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .page-link:hover {
+            background: #f5f5f5;
+        }
+        
+        .page-link.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        
+        /* 无结果提示 */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 16px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .filter-item {
+                min-width: 100%;
+            }
+            
+            .policy-nav {
+                flex-wrap: wrap;
+            }
+            
+            .policy-nav-item {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body class="body1">
+<!-- 顶部导航栏 -->
+<header class="header left">
+    <div class="left nav">
+        <ul>
+            <li class="nav_active"><i class="nav_1"></i><a href="#" data-page="shuju.html">数据概览</a></li>
+            <li><i class="nav_2"></i><a href="#" data-page="carContrl.html">车辆监控</a></li>
+            <li><i class="nav_3"></i><a href="#" data-page="map.html">地图界面</a></li>
+        </ul>
+    </div>
+
+    <div class="header_center left">
+        <h2><strong>河北省交通综合服务平台</strong></h2>
+        <p class="color_font"><small>Hebei Comprehensive Transportation Service Platform</small></p>
+    </div>
+
+    <div class="right nav text_right">
+        <ul>
+            <li><i class="nav_7"></i><a href="#" data-page="static.html">查询统计</a></li>
+            <li><i class="nav_8"></i><a href="#" data-page="message.html">政策信息</a></li>
+            <li><i class="nav_4"></i><a href="#" data-page="table1.html">业务办理</a></li>
+            <li id="user-info">
+                <i class="nav-user"></i>
+                <span id="username-display">用户</span>
+                <ul class="li_ul">
+                    <li><a href="#" id="logout-btn">退出登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</header>
+
+    
+    <!-- 政策信息主内容 -->
+    <div class="policy-container">
+        <h1 style="margin-bottom: 20px; color: #333;">交通政策信息中心</h1>
+        
+        <!-- 搜索和筛选区域 -->
+        <div class="policy-filter">
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label for="policy-type">政策类型</label>
+                    <select id="policy-type">
+                        <option value="all">全部类型</option>
+                        <option value="national">国家政策</option>
+                        <option value="local">地方政策</option>
+                        <option value="standard">行业标准</option>
+                        <option value="guide">政策解读</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="policy-sector">行业领域</label>
+                    <select id="policy-sector">
+                        <option value="all">全部领域</option>
+                        <option value="road">公路运输</option>
+                        <option value="rail">铁路运输</option>
+                        <option value="water">水路运输</option>
+                        <option value="aviation">航空运输</option>
+                        <option value="urban">城市交通</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="policy-date">发布时间</label>
+                    <select id="policy-date">
+                        <option value="all">全部时间</option>
+                        <option value="year">最近一年</option>
+                        <option value="half-year">最近半年</option>
+                        <option value="month">最近一月</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-item" style="flex: 3;">
+                    <label for="policy-keyword">关键词搜索</label>
+                    <input type="text" id="policy-keyword" placeholder="输入政策标题、文号或关键词">
+                </div>
+                <div class="filter-item" style="flex: 1; align-self: flex-end;">
+                    <button class="search-btn">搜索政策</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 政策分类导航 -->
+        <div class="policy-nav">
+            <div class="policy-nav-item active" data-target="laws">政策法规</div>
+            <div class="policy-nav-item" data-target="standards">行业标准</div>
+            <div class="policy-nav-item" data-target="guides">政策解读</div>
+            <div class="policy-nav-item" data-target="implementation">实施动态</div>
+            <div class="policy-nav-item" data-target="notices">通知公告</div>
+        </div>
+        
+        <!-- 政策法规内容 -->
+        <div id="laws" class="policy-content active">
+            <div class="policy-card" data-type="local" data-sector="road" data-date="2023-05-15">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《河北省交通运输条例》2023年修订版</h3>
+                    <span class="policy-card-date">2023-05-15</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">本条例对河北省交通运输规划、建设、运营、安全和监督管理等活动进行了全面规范，是河北省交通运输领域的基础性法规。2023年修订版新增了智慧交通建设、绿色交通发展等内容。</p>
+                    <div>
+                        <span class="policy-card-tag">地方性法规</span>
+                        <span class="policy-card-tag">综合交通</span>
+                        <span class="policy-card-tag">2023年</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>文号：冀交规〔2023〕1号</span>
+                    </div>
+                     <a href="http://gdfs.customs.gov.cn/customs/ztzl86/302310/5366122/gjmylyflgf/gjcm/5612394/index.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="local" data-sector="road" data-date="2023-03-10">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《河北省高速公路差异化收费实施方案》</h3>
+                    <span class="policy-card-date">2023-03-10</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">为优化高速公路资源配置，提高路网通行效率，促进物流降本增效，根据国家有关要求，结合我省实际，制定本实施方案。方案明确了分时段、分路段、分车型等差异化收费政策。</p>
+                    <div>
+                        <span class="policy-card-tag">地方政府规章</span>
+                        <span class="policy-card-tag">高速公路</span>
+                        <span class="policy-card-tag">收费政策</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>文号：冀交运〔2023〕15号</span>
+                    </div>
+                     <a href="https://www.gov.cn/zhengce/zhengceku/2021-06/15/content_5617919.htm" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="local" data-sector="road" data-date="2022-11-20">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《河北省农村公路管理办法》</h3>
+                    <span class="policy-card-date">2022-11-20</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">办法对农村公路的规划、建设、养护、管理和运营等方面作出了具体规定，旨在推动"四好农村路"建设，服务乡村振兴战略。明确了县级人民政府的主体责任和资金保障机制。</p>
+                    <div>
+                        <span class="policy-card-tag">地方政府规章</span>
+                        <span class="policy-card-tag">农村公路</span>
+                        <span class="policy-card-tag">乡村振兴</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>文号：冀交农〔2022〕8号</span>
+                    </div>
+                     <a href="https://www.quyang.gov.cn/content-621-55363.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="no-results" style="display: none;">
+                <p>没有找到符合条件的政策信息</p>
+            </div>
+        </div>
+        
+        <!-- 行业标准内容 -->
+        <div id="standards" class="policy-content">
+            <div class="policy-card" data-type="standard" data-sector="road" data-date="2023-04-01">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《河北省智慧高速公路建设技术标准》</h3>
+                    <span class="policy-card-date">2023-04-01</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">本标准规定了智慧高速公路的总体要求、基础设施、感知系统、通信网络、数据中心、应用系统、网络安全等技术要求，适用于河北省新建、改扩建智慧高速公路的设计、建设和验收。</p>
+                    <div>
+                        <span class="policy-card-tag">地方标准</span>
+                        <span class="policy-card-tag">智慧高速</span>
+                        <span class="policy-card-tag">DB13/T 5567-2023</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>标准编号：DB13/T 5567-2023</span>
+                    </div>
+                     <a href="https://jtt.hebei.gov.cn/jtyst/wap/wapzx/wapStyw/101680172145343.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="standard" data-sector="urban" data-date="2022-09-15">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《城市公共汽电车场站智能化建设规范》</h3>
+                    <span class="policy-card-date">2022-09-15</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">本规范规定了城市公共汽电车场站智能化建设的总体要求、基础设施智能化、运营管理智能化、信息服务智能化、安全保障智能化等内容，适用于河北省城市公共汽电车场站的智能化建设和改造。</p>
+                    <div>
+                        <span class="policy-card-tag">行业标准</span>
+                        <span class="policy-card-tag">公共交通</span>
+                        <span class="policy-card-tag">JT/T 1368-2022</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>标准编号：JT/T 1368-2022</span>
+                    </div>
+                     <a href="https://www.gov.cn/gongbao/content/2017/content_5217749.htm" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="no-results" style="display: none;">
+                <p>没有找到符合条件的行业标准</p>
+            </div>
+        </div>
+        
+        <!-- 政策解读内容 -->
+        <div id="guides" class="policy-content">
+            <div class="policy-card" data-type="guide" data-sector="road" data-date="2023-06-10">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">《河北省交通运输条例》修订解读</h3>
+                    <span class="policy-card-date">2023-06-10</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">本文详细解读了2023年《河北省交通运输条例》修订的背景、主要内容和亮点，重点分析了新增的智慧交通、绿色交通、综合运输等条款，帮助各级交通运输主管部门和从业人员准确理解法规要求。</p>
+                    <div>
+                        <span class="policy-card-tag">法规解读</span>
+                        <span class="policy-card-tag">视频讲解</span>
+                        <span class="policy-card-tag">问答手册</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>解读部门：河北省交通运输厅法规处</span>
+                    </div>
+                     <a href="https://www.hebtv.com/19/19js/zx/snsz/11749825.shtml" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="guide" data-sector="road" data-date="2023-04-20">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">高速公路差异化收费政策问答</h3>
+                    <span class="policy-card-date">2023-04-20</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">本问答手册针对《河北省高速公路差异化收费实施方案》中的重点问题进行了详细解答，包括政策背景、实施范围、优惠对象、办理流程等，配有典型案例分析，方便运输企业和驾驶员理解应用。</p>
+                    <div>
+                        <span class="policy-card-tag">政策问答</span>
+                        <span class="policy-card-tag">典型案例</span>
+                        <span class="policy-card-tag">操作指南</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>编制单位：河北省高速公路管理局</span>
+                    </div>
+                     <a href="https://www.gov.cn/zhengce/zhengceku/2021-06/15/content_5617919.htm" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="no-results" style="display: none;">
+                <p>没有找到符合条件的政策解读</p>
+            </div>
+        </div>
+        
+        <!-- 实施动态内容 -->
+        <div id="implementation" class="policy-content">
+            <div class="policy-card" data-type="local" data-sector="road" data-date="2023-09-30">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">河北省高速公路差异化收费政策实施半年评估报告</h3>
+                    <span class="policy-card-date">2023-09-30</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">报告显示，自2023年4月实施差异化收费政策以来，全省高速公路货车ETC使用率提升25%，夜间货车流量增长18%，重点路段拥堵时间减少35%，物流企业运输成本平均下降8%，政策效果显著。</p>
+                    <div>
+                        <span class="policy-card-tag">政策评估</span>
+                        <span class="policy-card-tag">数据分析</span>
+                        <span class="policy-card-tag">效果报告</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>评估单位：河北省交通运输厅</span>
+                    </div>
+                     <a href="https://www.gov.cn/xinwen/2023-02/22/content_5742689.htm" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="local" data-sector="road" data-date="2023-08-15">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">河北省农村公路"路长制"实施情况通报</h3>
+                    <span class="policy-card-date">2023-08-15</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">通报显示，全省已有98%的县(市、区)建立了"路长制"组织体系，落实各级路长2.3万名，累计整治农村公路安全隐患1.2万处，农村公路优良中等路率达到85%，比实施前提升12个百分点。</p>
+                    <div>
+                        <span class="policy-card-tag">工作通报</span>
+                        <span class="policy-card-tag">实施进展</span>
+                        <span class="policy-card-tag">典型案例</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>发布单位：河北省交通运输厅</span>
+                    </div>
+                    <a href="https://www.quyang.gov.cn/content-621-55363.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="no-results" style="display: none;">
+                <p>没有找到符合条件的实施动态</p>
+            </div>
+        </div>
+        
+        <!-- 通知公告内容 -->
+        <div id="notices" class="policy-content">
+            <div class="policy-card" data-type="local" data-sector="all" data-date="2023-10-08">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">关于开展2023年交通运输行业标准宣贯培训的通知</h3>
+                    <span class="policy-card-date">2023-10-08</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">为做好新发布交通运输行业标准的贯彻实施工作，定于2023年10月25日-27日在石家庄市举办标准宣贯培训班，重点培训《智慧高速公路建设技术标准》等5项新标准，请各单位按要求派员参加。</p>
+                    <div>
+                        <span class="policy-card-tag">培训通知</span>
+                        <span class="policy-card-tag">标准宣贯</span>
+                        <span class="policy-card-tag">报名指南</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>文号：冀交科〔2023〕22号</span>
+                    </div>
+                      <a href="https://xxgk.mot.gov.cn/2020/jigou/kjs/202312/t20231208_3964493.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="policy-card" data-type="local" data-sector="all" data-date="2023-09-28">
+                <div class="policy-card-header">
+                    <h3 class="policy-card-title">关于征集2024年交通运输标准化项目的通知</h3>
+                    <span class="policy-card-date">2023-09-28</span>
+                </div>
+                <div class="policy-card-body">
+                    <p class="policy-card-desc">为做好2024年交通运输标准化工作，现面向全省征集标准化项目，重点支持智慧交通、绿色交通、安全应急、新业态新模式等领域的标准制定项目，申报截止日期为2023年11月15日。</p>
+                    <div>
+                        <span class="policy-card-tag">项目征集</span>
+                        <span class="policy-card-tag">标准制定</span>
+                        <span class="policy-card-tag">申报指南</span>
+                    </div>
+                </div>
+                <div class="policy-card-footer">
+                    <div>
+                        <span>文号：冀交科〔2023〕20号</span>
+                    </div>
+                     <a href="https://xxgk.mot.gov.cn/2020/jigou/kjs/202412/t20241203_4160599.html" class="policy-card-link">查看通知 <i>→</i></a>
+                </div>
+            </div>
+            
+            <div class="no-results" style="display: none;">
+                <p>没有找到符合条件的通知公告</p>
+            </div>
+        </div>
+        
+        <!-- 分页控件 -->
+        <div class="pagination">
+            <div class="page-item">
+                <a href="#" class="page-link">上一页</a>
+            </div>
+            <div class="page-item">
+                <a href="#" class="page-link active">1</a>
+            </div>
+            <div class="page-item">
+                <a href="#" class="page-link">2</a>
+            </div>
+            <div class="page-item">
+                <a href="#" class="page-link">3</a>
+            </div>
+            <div class="page-item">
+                <a href="#" class="page-link">下一页</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="jQuery-2.2.0.min.js"></script>
+    <script src="base.js"></script>
+    <script>
+        // 导航功能实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a[data-page]');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault(); // 阻止默认跳转行为
+                    const page = this.getAttribute('data-page');
+                    
+                    if (page) {
+                        // 这里使用alert模拟，实际应该跳转到对应页面
+                        alert(`即将跳转到: ${page}`);
+                        window.location.href = page;
+                        
+                       
+                    }
+                });
+            });
+            
+            // 退出登录功能
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 确认退出
+                if (confirm('确定要退出登录吗？')) {
+                    alert('您已成功退出登录');
+                     window.location.href = 'index.html';
+                }
+            });
+            
+        });
+
+        $(document).ready(function() {
+            // 政策分类导航切换
+            $('.policy-nav-item').click(function() {
+                $('.policy-nav-item').removeClass('active');
+                $(this).addClass('active');
+                
+                var target = $(this).data('target');
+                $('.policy-content').removeClass('active');
+                $('#' + target).addClass('active');
+                
+                // 切换分类时重置搜索条件
+                resetSearch();
+            });
+            
+            // 搜索按钮点击事件
+            $('.search-btn').click(function() {
+                performSearch();
+            });
+            
+            // 回车键触发搜索
+            $('#policy-keyword').keypress(function(e) {
+                if(e.which == 13) {
+                    performSearch();
+                }
+            });
+            
+            // 重置搜索条件
+            function resetSearch() {
+                $('#policy-type').val('all');
+                $('#policy-sector').val('all');
+                $('#policy-date').val('all');
+                $('#policy-keyword').val('');
+                
+                // 显示当前分类下的所有卡片
+                var activeTab = $('.policy-nav-item.active').data('target');
+                $('#' + activeTab + ' .policy-card').show();
+                $('#' + activeTab + ' .no-results').hide();
+            }
+            
+            // 执行搜索
+            function performSearch() {
+                var type = $('#policy-type').val();
+                var sector = $('#policy-sector').val();
+                var dateRange = $('#policy-date').val();
+                var keyword = $('#policy-keyword').val().toLowerCase();
+                
+                // 获取当前激活的标签页
+                var activeTab = $('.policy-nav-item.active').data('target');
+                var $cards = $('#' + activeTab + ' .policy-card');
+                var $noResults = $('#' + activeTab + ' .no-results');
+                
+                // 如果没有搜索条件，显示所有卡片
+                if (type === 'all' && sector === 'all' && dateRange === 'all' && keyword === '') {
+                    $cards.show();
+                    $noResults.hide();
+                    return;
+                }
+                
+                // 计算当前日期
+                var currentDate = new Date();
+                var matchedCount = 0;
+                
+                // 遍历当前标签页下的所有卡片
+                $cards.each(function() {
+                    var $card = $(this);
+                    var cardType = $card.data('type');
+                    var cardSector = $card.data('sector');
+                    var cardDateStr = $card.data('date');
+                    var cardDate = new Date(cardDateStr);
+                    var cardTitle = $card.find('.policy-card-title').text().toLowerCase();
+                    var cardDesc = $card.find('.policy-card-desc').text().toLowerCase();
+                    var cardCode = $card.find('.policy-card-footer div span').text().toLowerCase();
+                    
+                    // 检查类型匹配
+                    var typeMatch = (type === 'all') || (cardType === type);
+                    
+                    // 检查行业领域匹配
+                    var sectorMatch = (sector === 'all') || (cardSector === sector) || (cardSector === 'all' && sector === 'all');
+                    
+                    // 检查日期范围匹配
+                    var dateMatch = false;
+                    if (dateRange === 'all') {
+                        dateMatch = true;
+                    } else {
+                        var diffTime = currentDate - cardDate;
+                        var diffDays = diffTime / (1000 * 60 * 60 * 24);
+                        
+                        if (dateRange === 'year' && diffDays <= 365) {
+                            dateMatch = true;
+                        } else if (dateRange === 'half-year' && diffDays <= 180) {
+                            dateMatch = true;
+                        } else if (dateRange === 'month' && diffDays <= 30) {
+                            dateMatch = true;
+                        }
+                    }
+                    
+                    // 检查关键词匹配
+                    var keywordMatch = (keyword === '') || 
+                                       (cardTitle.indexOf(keyword) >= 0) || 
+                                       (cardDesc.indexOf(keyword) >= 0) ||
+                                       (cardCode.indexOf(keyword) >= 0);
+                    
+                    // 如果所有条件都匹配，显示卡片，否则隐藏
+                    if (typeMatch && sectorMatch && dateMatch && keywordMatch) {
+                        $card.show();
+                        matchedCount++;
+                    } else {
+                        $card.hide();
+                    }
+                });
+                
+                // 根据匹配结果显示或隐藏"无结果"提示
+                if (matchedCount > 0) {
+                    $noResults.hide();
+                } else {
+                    $noResults.show();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

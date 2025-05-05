@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>河北省交通综合地图</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link href="zTreeStyle.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="jquery.page.css">
+    <link rel="stylesheet" href="base.css">
+    <style>
+		.map_con_div {
+		    display: none;
+		}
+		.map_con_div:first-child {
+		    display: block;
+		}
+        /* 新增样式 */
+        .map-container {
+            height: 100%;
+            position: relative;
+        }
+        .map-toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+        .map-toolbar ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .map-toolbar li {
+            display: inline-block;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .map-toolbar li i {
+            margin-right: 5px;
+        }
+        .map-legend {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            z-index: 999;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+        .legend-item {
+            margin: 5px 0;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 10px;
+            margin-right: 5px;
+        }
+        .traffic-legend {
+            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
+            height: 10px;
+            width: 100px;
+            margin: 5px 0;
+        }
+        .map-right-panel {
+            background: #f5f5f5;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .traffic-alert {
+            padding: 10px;
+            margin: 5px 0;
+            background: #FFF;
+            border-left: 4px solid #F44336;
+        }
+        .traffic-alert.warning {
+            border-left-color: #FFC107;
+        }
+        .traffic-alert.info {
+            border-left-color: #2196F3;
+        }
+        .facility-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .facility-item:hover {
+            background: #f0f0f0;
+        }
+        .facility-item.active {
+            background: #e3f2fd;
+            border-left: 3px solid #2196F3;
+        }
+        .facility-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            vertical-align: middle;
+        }
+        .highway-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23007bff"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H15V3H9v2H6.5c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>');
+        }
+        .railway-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff5722"><path d="M12 2c-4 0-8 .5-8 4v9.5c0 .95.38 1.81 1 2.44V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-2.06c.62-.63 1-1.49 1-2.44V6c0-3.5-3.58-4-8-4zm0 2c3.71 0 5.13.46 5.67 1H6.43c.6-.52 2.05-1 5.57-1zm6 11c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-7h12v7zm-6-3.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>');
+        }
+        .airport-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239c27b0"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>');
+        }
+        .port-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23009688"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>');
+        }
+        .bus-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e91e63"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>');
+        }
+        .subway-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23007bff"><circle cx="15.5" cy="16" r="1"/><circle cx="8.5" cy="16" r="1"/><path d="M7.01 9h10v5h-10zM17.8 2.8C16 2.09 13.86 2 12 2c-1.86 0-4 .09-5.8.8C3.53 3.84 2 6.05 2 8.86V22h20V8.86c0-2.81-1.53-5.02-4.2-6.06zm.2 13.08c0 1.45-1.18 2.62-2.63 2.62l1.13 1.12V20H15l-1.5-1.5h-2.83L9.17 20H7.5v-.38l1.12-1.12C7.18 18.5 6 17.32 6 15.88V9c0-2.63 3-3 6-3 3.32 0 6 .38 6 3v6.88z"/></svg>');
+        }
+        .construction-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff9800"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>');
+        }
+        .accident-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f44336"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm-1.06 13.54L7.4 12l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41-5.64 5.66z"/></svg>');
+        }
+        .traffic-congestion {
+            background-color: #F44336;
+        }
+        .traffic-slow {
+            background-color: #FFC107;
+        }
+        .traffic-smooth {
+            background-color: #4CAF50;
+        }
+        .highlighted-road {
+            stroke-color: #FF5722 !important;
+            stroke-weight: 8 !important;
+            stroke-opacity: 1 !important;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { stroke-opacity: 0.8; }
+            50% { stroke-opacity: 0.4; }
+            100% { stroke-opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<header class="header left">
+    <div class="left nav">
+        <ul>
+            <li class="nav_active"><i class="nav_1"></i><a href="#" data-page="shuju.html">数据概览</a></li>
+            <li><i class="nav_2"></i><a href="#" data-page="carContrl.html">车辆监控</a></li>
+            <li><i class="nav_3"></i><a href="#" data-page="map.html">地图界面</a></li>
+        </ul>
+    </div>
+
+    <div class="header_center left">
+        <h2><strong>河北省交通综合服务平台</strong></h2>
+        <p class="color_font"><small>Hebei Comprehensive Transportation Service Platform</small></p>
+    </div>
+
+    <div class="right nav text_right">
+        <ul>
+            <li><i class="nav_7"></i><a href="#" data-page="static.html">查询统计</a></li>
+            <li><i class="nav_8"></i><a href="#" data-page="message.html">政策信息</a></li>
+            <li><i class="nav_4"></i><a href="#" data-page="table1.html">业务办理</a></li>
+            <li id="user-info">
+                <i class="nav-user"></i>
+                <span id="username-display">用户名</span>
+                <ul class="li_ul">
+                    <li><a href="#" id="logout-btn">退出登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</header>
+<!--内容部分-->
+
+<div class="map_con left" id="car_control">
+    <!--左侧地图-->
+    <div class="left map_left">
+        <div class="map_box" id="map_box"></div>
+
+
+        
+        <!-- 地图图例 -->
+        <div class="map-legend">
+        </div>
+    </div>
+
+    <!--右侧功能栏-->
+    <div class="right map_right">
+        <div class="map_right_top">
+            <ul>
+                <li class="li_active">实时路况</li>
+                <li>交通设施</li>
+                <li>公共交通</li>
+            </ul>
+        </div>
+        <div class="map_con">
+            <!-- 实时路况面板 -->
+            <div class="map_con_div" style="display: block">
+                <div class="traffic-alert warning">
+                    <strong>石家庄市裕华路施工</strong>
+                    <p>裕华路(体育大街至建华大街)东向西方向因道路施工，占用两条车道，预计工期至2023-12-31</p>
+                </div>
+                <div class="traffic-alert">
+                    <strong>京港澳高速保定段事故</strong>
+                    <p>京港澳高速北京方向保定服务区附近发生交通事故，造成后方2公里拥堵，请过往车辆注意避让</p>
+                </div>
+                <div class="traffic-alert info">
+                    <strong>唐山市建设路缓行</strong>
+                    <p>建设路(北新道至新华道)因车流量大，行驶缓慢，建议绕行长宁道或南新道</p>
+                </div>
+                <div class="traffic-alert">
+                    <strong>秦皇岛市海滨路管制</strong>
+                    <p>海滨路(文化路至东山街)因重大活动实施交通管制，管制时间: 08:00-18:00</p>
+                </div>
+                
+                <div class="div_any_child">
+                    <div class="div_any_title">主要道路拥堵排名</div>
+                    <div class="table_p">
+						<table>
+						<thead><tr>
+						<th>排名</th>
+						                    <th>道路名称</th>
+						                    <th>拥堵指数</th>
+						                    <th>平均速度</th>
+						                </tr>
+						                </thead>
+						                <tbody>
+						                <tr><td>1</td><td>石家庄市裕华路</td><td>0.92</td><td>12km/h</td></tr>
+						                <tr><td>2</td><td>京港澳高速保定段</td><td>0.85</td><td>25km/h</td></tr>
+						                <tr><td>3</td><td>唐山市建设路</td><td>0.78</td><td>30km/h</td></tr>
+						                <tr><td>4</td><td>秦皇岛市海滨路</td><td>0.65</td><td>35km/h</td></tr>
+						                <tr><td>5</td><td>邯郸市人民路</td><td>0.60</td><td>40km/h</td></tr>
+						                </tbody>
+						            </table>
+						        </div>
+						    </div>
+						</div>
+						                             
+					<!-- 交通设施面板 -->
+					<div class="map_con_div">
+					    <p>
+					        <!-- 修改后 -->
+					        <input type="text" id="facilitySearch" placeholder="搜索交通设施..." class="carNo_input">
+					        <input type="button" id="facilitySearchBtn" value="搜索" class="find_but">
+					    </p>
+					    <div class="facility-item" data-road="京港澳高速(河北段)" data-type="highway" data-points="115.5,39.5;115.0,38.5;114.5,38.0;114.0,37.5">
+					        <span class="facility-icon highway-icon"></span>
+					        <span>京港澳高速(河北段)</span>
+					    </div>
+					    <div class="facility-item" data-road="京沪高速(河北段)" data-type="highway" data-points="116.8,39.5;116.5,38.8;116.3,38.0;116.5,37.5">
+					        <span class="facility-icon highway-icon"></span>
+					        <span>京沪高速(河北段)</span>
+					    </div>
+					    <div class="facility-item" data-road="京广铁路(河北段)" data-type="railway" data-points="115.8,39.5;115.5,38.8;115.0,38.0;114.5,37.5">
+					        <span class="facility-icon railway-icon"></span>
+					        <span>京广铁路(河北段)</span>
+					    </div>
+					    <div class="facility-item" data-road="京沪高铁(河北段)" data-type="railway" data-points="116.8,39.5;116.5,38.8;116.3,38.0;116.5,37.5">
+					        <span class="facility-icon railway-icon"></span>
+					        <span>京沪高铁(河北段)</span>
+					    </div>
+					    <div class="facility-item" data-road="石家庄正定国际机场" data-type="airport" data-point="114.7,38.3">
+					        <span class="facility-icon airport-icon"></span>
+					        <span>石家庄正定国际机场</span>
+					    </div>
+					    <div class="facility-item" data-road="唐山三女河机场" data-type="airport" data-point="118.0,39.7">
+					        <span class="facility-icon airport-icon"></span>
+					        <span>唐山三女河机场</span>
+					    </div>
+					    <div class="facility-item" data-road="秦皇岛港" data-type="port" data-point="119.6,39.9">
+					        <span class="facility-icon port-icon"></span>
+					        <span>秦皇岛港</span>
+					    </div>
+					    <div class="facility-item" data-road="唐山港" data-type="port" data-point="118.9,39.2">
+					        <span class="facility-icon port-icon"></span>
+					        <span>唐山港</span>
+					    </div>
+					    <div class="facility-item" data-road="雄安新区交通枢纽(建设中)" data-type="construction" data-point="115.9,38.9">
+					        <span class="facility-icon construction-icon"></span>
+					        <span>雄安新区交通枢纽(建设中)</span>
+					    </div>
+					</div>
+						            
+						            <!-- 公共交通面板 -->
+						            <div class="map_con_div">
+						                <div class="facility-item">
+						                    <span class="facility-icon bus-icon"></span>
+						                    <span>石家庄公交1路(谈固-西王)</span>
+						                </div>
+						                <div class="facility-item">
+						                    <span class="facility-icon bus-icon"></span>
+						                    <span>石家庄公交快1路(博物院-正定)</span>
+						                </div>
+						                <div class="facility-item">
+						                    <span class="facility-icon subway-icon"></span>
+						                    <span>石家庄地铁1号线(西王-福泽)</span>
+						                </div>
+						                <div class="facility-item">
+						                    <span class="facility-icon subway-icon"></span>
+						                    <span>石家庄地铁3号线(市二中-乐乡)</span>
+						                </div>
+						                <div class="facility-item">
+						                    <span class="facility-icon bus-icon"></span>
+						                    <span>唐山公交26路(理工大学-启新立交桥)</span>
+						                </div>
+						                <div class="facility-item">
+						                    <span class="facility-icon bus-icon"></span>
+						                    <span>秦皇岛公交34路(海滨汽车站-北戴河火车站)</span>
+						                </div>
+						                
+						                <div class="div_any_child">
+						                    <div class="div_any_title">公共交通实时信息</div>
+						                    <div class="table_p">
+						                        <table>
+						                            <thead><tr>
+						                                <th>线路</th>
+						                                <th>方向</th>
+						                                <th>最近班次</th>
+						                                <th>状态</th>
+						                            </tr>
+						                            </thead>
+						                            <tbody>
+						                            <tr><td>地铁1号线</td><td>西王→福泽</td><td>3分钟</td><td class="status-running">运行中</td></tr>
+						                            <tr><td>公交1路</td><td>谈固→西王</td><td>5分钟</td><td class="status-running">运行中</td></tr>
+						                            <tr><td>公交快1路</td><td>博物院→正定</td><td>8分钟</td><td class="status-running">运行中</td></tr>
+						                            <tr><td>公交26路</td><td>理工大学→启新立交桥</td><td>10分钟</td><td class="status-slow">缓行</td></tr>
+						                            <tr><td>公交34路</td><td>海滨汽车站→北戴河火车站</td><td>15分钟</td><td class="status-smooth">畅通</td></tr>
+						                            </tbody>
+						                        </table>
+						                    </div>
+						                </div>
+						            </div>
+						        </div>
+						    </div>
+						</div>
+						
+						<script src="jQuery-2.2.0.min.js"></script>
+						<script src="base.js"></script>
+						<script src="echarts-all.js"></script>
+						<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=5ieMMexWmzB9jivTq6oCRX9j&callback"></script>
+						<script src="jquery.page.js"></script>
+						<script src="map_control.js"></script>
+						<script src="jquery.ztree.all-3.5.js"></script>
+						<script src="js/listTree.js"></script>
+						<script>
+// 导航功能实现
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('a[data-page]');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault(); // 阻止默认跳转行为
+            const page = this.getAttribute('data-page');
+            
+            if (page) {
+                // 这里使用alert模拟，实际应该跳转到对应页面
+                alert(`即将跳转到: ${page}`);
+                window.location.href = page;
+                
+               
+            }
+        });
+    });
+    
+    // 退出登录功能
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // 确认退出
+        if (confirm('确定要退出登录吗？')) {
+            alert('您已成功退出登录');
+             window.location.href = 'index.html';
+        }
+    });
+    
+});
+// 全局变量
+var map;
+var highlightedItems = [];
+
+// 初始化百度地图
+function initMap() {
+    map = new BMap.Map("map_box");
+    // 设置中心点为河北省会石家庄
+    var point = new BMap.Point(114.514859, 38.042306);
+    map.centerAndZoom(point, 8);
+
+    // 启用滚轮缩放和导航控件
+    map.enableScrollWheelZoom();
+    map.addControl(new BMap.NavigationControl());
+    map.addControl(new BMap.ScaleControl());
+
+ // 添加河北省边界
+						        addHebeiBoundary(map);
+
+						        // 添加交通设施图层
+						        addTransportationLayers(map);
+
+						        // 添加实时路况
+						        addTrafficConditions(map);
+
+						        // 添加公共交通路线
+						        addPublicTransportRoutes(map);
+
+						        // 添加事件监听
+						        setupEventListeners();
+						    }
+						
+						       
+
+						    // 添加河北省边界
+						    function addHebeiBoundary(map) {
+						        // 这里应该是河北省的边界坐标点，简化为矩形示意
+						        var boundaryPoints = [
+						            new BMap.Point(113.5, 42.0),
+						            new BMap.Point(119.8, 42.0),
+						            new BMap.Point(119.8, 36.0),
+						            new BMap.Point(113.5, 36.0)
+						        ];
+
+						        var boundary = new BMap.Polygon(boundaryPoints, {
+						            strokeColor: "#3388ff",
+						            strokeWeight: 2,
+						            strokeOpacity: 0.8,
+						            fillColor: "#3388ff",
+						            fillOpacity: 0.1
+						        });
+						        map.addOverlay(boundary);
+						    }
+
+						    // 添加交通设施图层
+						    function addTransportationLayers(map) {
+						        // 高速公路
+						        var highways = [
+						            {name: "京港澳高速", points: [
+						                new BMap.Point(115.5, 39.5),
+						                new BMap.Point(115.0, 38.5),
+						                new BMap.Point(114.5, 38.0),
+						                new BMap.Point(114.0, 37.5)
+						            ]},
+						            {name: "京沪高速", points: [
+						                new BMap.Point(116.8, 39.5),
+						                new BMap.Point(116.5, 38.8),
+						                new BMap.Point(116.3, 38.0),
+						                new BMap.Point(116.5, 37.5)
+						            ]}
+						        ];
+
+						        highways.forEach(function(highway) {
+						            var polyline = new BMap.Polyline(highway.points, {
+						                strokeColor: "#007bff",
+						                strokeWeight: 4,
+						                strokeOpacity: 0.8
+						            });
+						            map.addOverlay(polyline);
+
+						            // 添加标签
+						            var label = new BMap.Label(highway.name, {
+						                position: highway.points[Math.floor(highway.points.length/2)],
+						                offset: new BMap.Size(20, -10)
+						            });
+						            label.setStyle({
+						                color: "#007bff",
+						                fontSize: "12px",
+						                fontWeight: "bold"
+						            });
+						            map.addOverlay(label);
+						        });
+
+						        // 铁路
+						        var railways = [
+						            {name: "京广铁路", points: [
+						                new BMap.Point(115.8, 39.5),
+						                new BMap.Point(115.5, 38.8),
+						                new BMap.Point(115.0, 38.0),
+						                new BMap.Point(114.5, 37.5)
+						            ]}
+						        ];
+
+						        railways.forEach(function(railway) {
+						            var polyline = new BMap.Polyline(railway.points, {
+						                strokeColor: "#ff5722",
+						                strokeWeight: 3,
+						                strokeOpacity: 0.8,
+						                strokeStyle: "dashed"
+						            });
+						            map.addOverlay(polyline);
+
+						            // 添加标签
+						            var label = new BMap.Label(railway.name, {
+						                position: railway.points[Math.floor(railway.points.length/2)],
+						                offset: new BMap.Size(20, -10)
+						            });
+						            label.setStyle({
+						                color: "#ff5722",
+						                fontSize: "12px",
+						                fontWeight: "bold"
+						            });
+						            map.addOverlay(label);
+						        });
+
+						        // 机场
+						        var airports = [
+						            {name: "石家庄正定国际机场", point: new BMap.Point(114.7, 38.3)},
+						            {name: "唐山三女河机场", point: new BMap.Point(118.0, 39.7)}
+						        ];
+
+						        airports.forEach(function(airport) {
+						            var marker = new BMap.Marker(airport.point, {
+						                icon: new BMap.Icon("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239c27b0'><path d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>", new BMap.Size(24, 24))
+						            });
+						            map.addOverlay(marker);
+
+						            var label = new BMap.Label(airport.name, {
+						                position: airport.point,
+						                offset: new BMap.Size(15, 15)
+						            });
+						            map.addOverlay(label);
+						        });
+						    }
+
+						    // 添加实时路况
+						    function addTrafficConditions(map) {
+						        // 拥堵路段
+						        var congestions = [
+						            {name: "裕华路", points: [
+						                new BMap.Point(114.5, 38.05),
+						                new BMap.Point(114.6, 38.05)
+						            ]},
+						            {name: "京港澳高速保定段", points: [
+						                new BMap.Point(115.2, 38.8),
+						                new BMap.Point(115.3, 38.7)
+						            ]}
+						        ];
+
+						        congestions.forEach(function(road) {
+						            var polyline = new BMap.Polyline(road.points, {
+						                strokeColor: "#f44336",
+						                strokeWeight: 5,
+						                strokeOpacity: 0.8
+						            });
+						            map.addOverlay(polyline);
+						        });
+
+						        // 缓行路段
+						        var slowRoads = [
+						            {name: "建设路", points: [
+						                new BMap.Point(118.1, 39.6),
+						                new BMap.Point(118.2, 39.6)
+						            ]}
+						        ];
+
+						        slowRoads.forEach(function(road) {
+						            var polyline = new BMap.Polyline(road.points, {
+						                strokeColor: "#ffc107",
+						                strokeWeight: 5,
+						                strokeOpacity: 0.8
+						            });
+						            map.addOverlay(polyline);
+						        });
+
+						        // 施工路段
+						        var constructions = [
+						            {name: "海滨路", points: [
+						                new BMap.Point(119.6, 39.9),
+						                new BMap.Point(119.65, 39.9)
+						            ]}
+						        ];
+
+						        constructions.forEach(function(road) {
+						            var polyline = new BMap.Polyline(road.points, {
+						                strokeColor: "#ff9800",
+						                strokeWeight: 5,
+						                strokeOpacity: 0.8,
+						                strokeStyle: "dashed"
+						            });
+						            map.addOverlay(polyline);
+						        });
+						    }
+
+						    // 添加公共交通路线
+						    function addPublicTransportRoutes(map) {
+						        // 公交线路
+						        var busRoutes = [
+						            {name: "石家庄公交1路", points: [
+						                new BMap.Point(114.6, 38.05),
+						                new BMap.Point(114.55, 38.03),
+						                new BMap.Point(114.5, 38.02)
+						            ]}
+						        ];
+
+						        busRoutes.forEach(function(route) {
+						            var polyline = new BMap.Polyline(route.points, {
+						                strokeColor: "#e91e63",
+						                strokeWeight: 3,
+						                strokeOpacity: 0.8
+						            });
+						            map.addOverlay(polyline);
+						        });
+
+						        // 地铁线路
+						        var subwayRoutes = [
+						            {name: "石家庄地铁1号线", points: [
+						                new BMap.Point(114.4, 38.03),
+						                new BMap.Point(114.45, 38.04),
+						                new BMap.Point(114.5, 38.05),
+						                new BMap.Point(114.55, 38.06)
+						            ]}
+						        ];
+
+						        subwayRoutes.forEach(function(route) {
+						            var polyline = new BMap.Polyline(route.points, {
+						                strokeColor: "#007bff",
+						                strokeWeight: 4,
+						                strokeOpacity: 0.8
+						            });
+						            map.addOverlay(polyline);
+						        });
+						    }
+// 搜索交通设施
+function searchFacility() {
+    // 清除之前的高亮显示
+    clearHighlightedItems();
+    
+    var keyword = $("#facilitySearch").val().trim();
+    if (!keyword) {
+        alert("请输入搜索关键词");
+        return;
+    }
+    
+    // 搜索匹配的设施
+    var found = false;
+    $(".facility-item").each(function() {
+        var facilityName = $(this).text();
+        if (facilityName.indexOf(keyword) !== -1) {
+            found = true;
+            $(this).addClass("active");
+            highlightFacilityOnMap($(this));
+        } else {
+            $(this).removeClass("active");
+        }
+    });
+    
+    if (!found) {
+        alert("未找到匹配的交通设施");
+    }
+}
+
+// 在地图上高亮显示选中的交通设施
+function highlightFacilityOnMap($facilityItem) {
+    var type = $facilityItem.data("type");
+    var name = $facilityItem.text().trim();
+    
+    if (type === "highway" || type === "railway") {
+        // 处理线路类型（高速公路、铁路等）
+        var pointsStr = $facilityItem.data("points");
+        var points = pointsStr.split(";").map(function(coord) {
+            var parts = coord.split(",");
+            return new BMap.Point(parseFloat(parts[0]), parseFloat(parts[1]));
+        });
+        
+        var color = type === "highway" ? "#007bff" : "#ff5722";
+        var polyline = new BMap.Polyline(points, {
+            strokeColor: color,
+            strokeWeight: 8,
+            strokeOpacity: 0.8,
+            strokeStyle: type === "railway" ? "dashed" : "solid"
+        });
+        
+        map.addOverlay(polyline);
+        highlightedItems.push(polyline);
+        
+        // 居中显示
+        var bounds = new BMap.Bounds();
+        points.forEach(function(point) {
+            bounds.extend(point);
+        });
+        map.setViewport(bounds);
+        
+    } else if (type === "airport" || type === "port" || type === "construction") {
+        // 处理点类型（机场、港口等）
+        var pointStr = $facilityItem.data("point");
+        var coords = pointStr.split(",");
+        var point = new BMap.Point(parseFloat(coords[0]), parseFloat(coords[1]));
+        
+        var iconUrl = "";
+        switch(type) {
+            case "airport":
+                iconUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239c27b0'><path d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>";
+                break;
+            case "port":
+                iconUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23009688'><path d='M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z'/></svg>";
+                break;
+            case "construction":
+                iconUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff9800'><path d='M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z'/></svg>";
+                break;
+        }
+        
+        var marker = new BMap.Marker(point, {
+            icon: new BMap.Icon(iconUrl, new BMap.Size(32, 32)),
+            animation: BMAP_ANIMATION_BOUNCE
+        });
+        
+        map.addOverlay(marker);
+        highlightedItems.push(marker);
+        
+        // 添加标签
+        var label = new BMap.Label(name, {
+            position: point,
+            offset: new BMap.Size(20, -10)
+        });
+        label.setStyle({
+            color: "#333",
+            fontSize: "14px",
+            fontWeight: "bold",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            border: "1px solid #ccc",
+            padding: "2px 5px"
+        });
+        map.addOverlay(label);
+        highlightedItems.push(label);
+        
+        // 居中显示
+        map.centerAndZoom(point, 12);
+    }
+}
+
+// 清除高亮显示的交通设施
+function clearHighlightedItems() {
+    highlightedItems.forEach(function(item) {
+        map.removeOverlay(item);
+    });
+    highlightedItems = [];
+    $(".facility-item").removeClass("active");
+}
+						    // 设置事件监听
+						    function setupEventListeners() {
+						        // 右侧面板选项卡切换
+						        $(".map_right_top li").click(function() {
+						            var index = $(this).index();
+						            $(this).addClass("li_active").siblings().removeClass("li_active");
+						            $(".map_con_div").eq(index).show().siblings(".map_con_div").hide();
+						        });
+						    
+						        // 交通设施搜索功能
+						        $("#facilitySearchBtn").click(searchFacility);
+						        $("#facilitySearch").keypress(function(e) {
+						            if (e.which == 13) {
+						                searchFacility();
+						            }
+						        });
+						        
+						        // 点击交通设施项高亮显示
+						        $(".facility-item").click(function() {
+						            clearHighlightedItems();
+						            $(this).addClass("active");
+						            highlightFacilityOnMap($(this));
+						        });
+						    }
+						    
+						    // 页面加载完成后初始化地图
+						    $(document).ready(function() {
+						        initMap();
+						    });
+						</script>
+
+		</body>
+		</html>
+						       						       
